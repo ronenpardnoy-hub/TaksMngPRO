@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<meta name="description" content="TaskMaster PRO — IT Team Goal & KPI Manager"/>
-<title>TaskMaster PRO</title>
+<meta name="description" content="TaskMngPRO — IT Team Goal & KPI Manager"/>
+<title>TaskMngPRO</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%234f46e5'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='14' font-weight='900' font-family='sans-serif'>IT</text></svg>"/>
 
 <!-- Tailwind CSS -->
@@ -47,11 +47,49 @@ tr:hover .kpi-btns{opacity:1;}
 
 <script>
 // ─── SUPABASE CONFIG ──────────────────────────────────────────────────────────
-// ⚠️  REPLACE these 2 values — takes 2 minutes, see SETUP.md
-const SUPABASE_URL  = 'https://lfuwoyryxfypuwtkkdnp.supabase.co';   // e.g. https://xyzxyz.supabase.co
-const SUPABASE_ANON = 'sb_publishable_QPkXXYZFMPluG5Wb3Sd8ew_boK-91vf';      // long string starting with eyJ...
+const SUPABASE_URL  = 'REPLACE_WITH_YOUR_PROJECT_URL';
+const SUPABASE_ANON = 'REPLACE_WITH_YOUR_ANON_KEY';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+// ── Startup check — shows a readable error instead of black screen ────────────
+(function(){
+  const show = (msg, detail) => {
+    document.getElementById('root').innerHTML = `
+      <div style="min-height:100vh;background:#080c14;display:flex;align-items:center;justify-content:center;padding:24px;font-family:sans-serif;">
+        <div style="max-width:480px;width:100%;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:16px;padding:28px;">
+          <div style="font-size:28px;margin-bottom:12px;">⚠️</div>
+          <div style="font-size:16px;font-weight:900;color:#f87171;margin-bottom:8px;">${msg}</div>
+          <div style="font-size:12px;color:#94a3b8;line-height:1.7;word-break:break-all;">${detail}</div>
+        </div>
+      </div>`;
+  };
+
+  if(!window.supabase){
+    show('Supabase library failed to load','Check your internet connection and reload the page.');
+    return;
+  }
+  if(SUPABASE_URL.includes('REPLACE') || SUPABASE_ANON.includes('REPLACE')){
+    show('Supabase keys not set','You need to replace SUPABASE_URL and SUPABASE_ANON in index.html with your real project URL and anon key from Supabase → Settings → API Keys.');
+    return;
+  }
+  if(!SUPABASE_URL.startsWith('https://')){
+    show('Invalid Project URL','SUPABASE_URL must start with https:// — e.g. https://xyzxyz.supabase.co');
+    return;
+  }
+})();
+
+let supabase;
+try {
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+} catch(e) {
+  document.getElementById('root').innerHTML = `
+    <div style="min-height:100vh;background:#080c14;display:flex;align-items:center;justify-content:center;padding:24px;font-family:sans-serif;">
+      <div style="max-width:480px;width:100%;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:16px;padding:28px;">
+        <div style="font-size:28px;margin-bottom:12px;">⚠️</div>
+        <div style="font-size:16px;font-weight:900;color:#f87171;margin-bottom:8px;">Failed to initialise Supabase</div>
+        <div style="font-size:12px;color:#94a3b8;line-height:1.7;">${e.message}</div>
+      </div>
+    </div>`;
+}
 </script>
 
 <script type="text/babel" data-presets="react">
@@ -502,7 +540,7 @@ function App() {
         <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:16}}>
           <div style={{width:72,height:72,borderRadius:20,background:'linear-gradient(135deg,#4f46e5,#7c3aed)',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,color:'#fff',fontSize:20,boxShadow:'0 8px 32px rgba(79,70,229,0.4)'}}>IT</div>
           <div style={{textAlign:'center'}}>
-            <h1 style={{fontSize:28,fontWeight:900,color:'#e2e8f0',letterSpacing:'-0.03em'}}>TaskMaster <span style={{color:'#818cf8'}}>PRO</span></h1>
+            <h1 style={{fontSize:28,fontWeight:900,color:'#e2e8f0',letterSpacing:'-0.03em'}}>TaskMng<span style={{color:'#818cf8'}}>PRO</span></h1>
             <p style={{fontSize:13,color:'#475569',marginTop:8}}>IT Team Goals & KPI Tracker</p>
           </div>
         </div>
@@ -577,7 +615,7 @@ function App() {
       <header style={{height:56,position:'sticky',top:0,zIndex:40,display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 20px',background:dm?'rgba(8,12,20,0.92)':'rgba(255,255,255,0.92)',borderBottom:dm?'1px solid rgba(255,255,255,0.05)':'1px solid #e2e8f0',backdropFilter:'blur(16px)'}}>
         <div style={{display:'flex',alignItems:'center',gap:12}}>
           <div style={{width:32,height:32,borderRadius:8,background:'#4f46e5',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,color:'#fff',fontSize:11,boxShadow:'0 4px 12px rgba(79,70,229,0.3)'}}>IT</div>
-          <div><span style={{fontWeight:900,fontSize:14,letterSpacing:'-0.02em'}}>TaskMaster</span><span style={{color:'#818cf8',fontWeight:900,fontSize:14}}> PRO</span></div>
+          <div><span style={{fontWeight:900,fontSize:14,letterSpacing:'-0.02em'}}>TaskMng</span><span style={{color:'#818cf8',fontWeight:900,fontSize:14}}>PRO</span></div>
           <span style={{fontSize:8,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',padding:'2px 8px',borderRadius:20,background:'rgba(16,185,129,0.1)',color:'#34d399',border:'1px solid rgba(16,185,129,0.2)'}}>Live</span>
         </div>
         <div style={{display:'flex',alignItems:'center',gap:6}}>
@@ -1148,7 +1186,33 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+// Global error boundary — catches React render crashes
+class ErrorBoundary extends React.Component {
+  constructor(props){ super(props); this.state={err:null}; }
+  static getDerivedStateFromError(e){ return {err:e}; }
+  render(){
+    if(this.state.err) return (
+      <div style={{minHeight:'100vh',background:'#080c14',display:'flex',alignItems:'center',justifyContent:'center',padding:24,fontFamily:'sans-serif'}}>
+        <div style={{maxWidth:500,width:'100%',background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.3)',borderRadius:16,padding:28}}>
+          <div style={{fontSize:28,marginBottom:12}}>⚠️</div>
+          <div style={{fontSize:16,fontWeight:900,color:'#f87171',marginBottom:8}}>Something went wrong</div>
+          <div style={{fontSize:11,color:'#94a3b8',lineHeight:1.8,wordBreak:'break-all',whiteSpace:'pre-wrap',background:'rgba(0,0,0,0.3)',borderRadius:8,padding:12,marginBottom:12}}>{this.state.err.message}</div>
+          <div style={{fontSize:11,color:'#64748b',lineHeight:1.7}}>
+            <b style={{color:'#94a3b8'}}>Common fixes:</b><br/>
+            1. Make sure SUPABASE_URL and SUPABASE_ANON are filled in correctly<br/>
+            2. Make sure you ran the SQL to create the user_data table<br/>
+            3. Check Row Level Security policies were created
+          </div>
+        </div>
+      </div>
+    );
+    return this.props.children;
+  }
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <ErrorBoundary><App/></ErrorBoundary>
+);
 </script>
 </body>
 </html>
