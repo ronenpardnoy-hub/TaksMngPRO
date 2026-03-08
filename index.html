@@ -14,8 +14,8 @@
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <!-- Babel for JSX in browser -->
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<!-- Recharts -->
-<script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
+<!-- Recharts (pinned, reliable CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.js"></script>
 <!-- Supabase JS v2 -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
@@ -46,49 +46,32 @@ tr:hover .kpi-btns{opacity:1;}
 <div id="root"></div>
 
 <script>
-// ─── SUPABASE CONFIG ──────────────────────────────────────────────────────────
-const SUPABASE_URL  = 'REPLACE_WITH_YOUR_PROJECT_URL';
-const SUPABASE_ANON = 'REPLACE_WITH_YOUR_ANON_KEY';
+// ─── SUPABASE CONFIG ─────────────────────────────────────────────────────────
+// ⚠️  Replace these 2 values with yours from Supabase → Settings → API Keys
+window.SUPABASE_URL  = 'https://lfuwoyryxfypuwtkkdnp.supabase.co';
+window.SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmdXdveXJ5eGZ5cHV3dGtrZG5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NTY3NTEsImV4cCI6MjA4ODUzMjc1MX0.lft3JyFiPGtsAVVW8WdaL5OMYPaIH1J26rTzoHPD0-Y';
 
-// ── Startup check — shows a readable error instead of black screen ────────────
-(function(){
-  const show = (msg, detail) => {
-    document.getElementById('root').innerHTML = `
-      <div style="min-height:100vh;background:#080c14;display:flex;align-items:center;justify-content:center;padding:24px;font-family:sans-serif;">
-        <div style="max-width:480px;width:100%;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:16px;padding:28px;">
-          <div style="font-size:28px;margin-bottom:12px;">⚠️</div>
-          <div style="font-size:16px;font-weight:900;color:#f87171;margin-bottom:8px;">${msg}</div>
-          <div style="font-size:12px;color:#94a3b8;line-height:1.7;word-break:break-all;">${detail}</div>
-        </div>
-      </div>`;
-  };
+function _showError(msg, detail) {
+  document.getElementById('root').innerHTML =
+    '<div style="min-height:100vh;background:#080c14;display:flex;align-items:center;justify-content:center;padding:24px;font-family:sans-serif">' +
+    '<div style="max-width:500px;width:100%;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:16px;padding:28px">' +
+    '<div style="font-size:28px;margin-bottom:12px">⚠️</div>' +
+    '<div style="font-size:16px;font-weight:900;color:#f87171;margin-bottom:10px">' + msg + '</div>' +
+    '<div style="font-size:12px;color:#94a3b8;line-height:1.8;word-break:break-all">' + detail + '</div>' +
+    '</div></div>';
+}
 
-  if(!window.supabase){
-    show('Supabase library failed to load','Check your internet connection and reload the page.');
-    return;
+if (window.SUPABASE_URL.indexOf('REPLACE') !== -1 || window.SUPABASE_ANON.indexOf('REPLACE') !== -1) {
+  _showError(
+    'Supabase keys not configured',
+    'Open index.html in a text editor and replace SUPABASE_URL and SUPABASE_ANON with your real values from:<br><br><b>Supabase → Settings → API Keys</b>'
+  );
+} else {
+  try {
+    window._db = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON);
+  } catch(e) {
+    _showError('Failed to connect to Supabase', e.message);
   }
-  if(SUPABASE_URL.includes('REPLACE') || SUPABASE_ANON.includes('REPLACE')){
-    show('Supabase keys not set','You need to replace SUPABASE_URL and SUPABASE_ANON in index.html with your real project URL and anon key from Supabase → Settings → API Keys.');
-    return;
-  }
-  if(!SUPABASE_URL.startsWith('https://')){
-    show('Invalid Project URL','SUPABASE_URL must start with https:// — e.g. https://xyzxyz.supabase.co');
-    return;
-  }
-})();
-
-let supabase;
-try {
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-} catch(e) {
-  document.getElementById('root').innerHTML = `
-    <div style="min-height:100vh;background:#080c14;display:flex;align-items:center;justify-content:center;padding:24px;font-family:sans-serif;">
-      <div style="max-width:480px;width:100%;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:16px;padding:28px;">
-        <div style="font-size:28px;margin-bottom:12px;">⚠️</div>
-        <div style="font-size:16px;font-weight:900;color:#f87171;margin-bottom:8px;">Failed to initialise Supabase</div>
-        <div style="font-size:12px;color:#94a3b8;line-height:1.7;">${e.message}</div>
-      </div>
-    </div>`;
 }
 </script>
 
@@ -182,21 +165,21 @@ function useAppData() {
   const uid=user?.id||null;
 
   // ── Auth ──────────────────────────────────────────────────────────────────
-  const signIn=()=>supabase.auth.signInWithOAuth({
+  const signIn=()=>window._db.auth.signInWithOAuth({
     provider:'google',
     options:{redirectTo: window.location.href, queryParams:{prompt:'select_account'}},
   });
   const signOut=async()=>{
-    await supabase.auth.signOut();
+    await window._db.auth.signOut();
     setReady(false); setGoals([]); setKpis([]); setTeam([]);
     seeded.current=false;
   };
 
   useEffect(()=>{
     // Get initial session (handles page reload after OAuth redirect)
-    supabase.auth.getSession().then(({data:{session}})=>setUser(session?.user||null));
+    window._db.auth.getSession().then(({data:{session}})=>setUser(session?.user||null));
     // Listen for auth changes
-    const {data:{subscription}}=supabase.auth.onAuthStateChange((_,session)=>setUser(session?.user||null));
+    const {data:{subscription}}=window._db.auth.onAuthStateChange((_,session)=>setUser(session?.user||null));
     return ()=>subscription.unsubscribe();
   },[]);
 
@@ -220,7 +203,7 @@ function useAppData() {
       if(!data && !seeded.current){
         // First login — seed demo data
         seeded.current=true;
-        await supabase.from('user_data').upsert({
+        await window._db.from('user_data').upsert({
           user_id:uid, goals:SEED_GOALS, kpis:SEED_KPIS, team:SEED_TEAM,
           updated_at:new Date().toISOString(),
         });
@@ -248,7 +231,7 @@ function useAppData() {
     };
 
     load();
-    return ()=>{ if(channel) supabase.removeChannel(channel); };
+    return ()=>{ if(channel) window._db.removeChannel(channel); };
   },[uid]);
 
   // ── Save helper — debounced to avoid hammering the DB ─────────────────────
@@ -257,7 +240,7 @@ function useAppData() {
     setSyncing(true);
     if(saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current=setTimeout(async()=>{
-      const {error}=await supabase.from('user_data').upsert({
+      const {error}=await window._db.from('user_data').upsert({
         user_id:uid, ...localState.current,
         updated_at:new Date().toISOString(),
       });
