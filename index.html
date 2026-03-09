@@ -554,9 +554,17 @@ function App() {
     try{
       const content=hasF&&window.__pif?[{type:'image',source:{type:'base64',media_type:window.__pif.mime,data:window.__pif.base64}},{type:'text',text:'Extract all goals, tasks and KPIs.'}]:`Extract ALL goals, tasks, subtasks and KPIs from:\n\n${importTxt}`;
       // ⚠️  Set your Anthropic API key here — one key works for all users
-      const apiKey = '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';
-      if(apiKey.includes('REPLACE')){setImportErr('AI Import not configured. Add your Anthropic API key to the HTML file.');setImportStep('input');return;}
-      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey.trim(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,system:SYS,messages:[{role:'user',content}]})});
+      // Call Supabase Edge Function — API key stays secure on the server
+      const session = await window._db.auth.getSession();
+      const token = session?.data?.session?.access_token || '';
+      const res=await fetch(`${window.SUPABASE_URL}/functions/v1/ai-import`,{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body:JSON.stringify({system:SYS, messages:[{role:'user',content}]}),
+      });
       if(!res.ok)throw new Error(`API ${res.status}`);
       const data=await res.json();
       const raw=data.content?.map(b=>b.type==='text'?b.text:'').join('').trim();
