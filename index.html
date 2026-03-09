@@ -564,7 +564,11 @@ function App() {
         },
         body:JSON.stringify({system:SYS, messages:[{role:'user',content}]}),
       });
-      if(!res.ok)throw new Error(`API ${res.status}`);
+      if(!res.ok){
+        let errBody='';
+        try{errBody=await res.text();}catch(e){}
+        throw new Error(`API ${res.status}: ${errBody.slice(0,200)}`);
+      }
       const data=await res.json();
       const raw=data.content?.map(b=>b.type==='text'?b.text:'').join('').trim();
       const m=raw?.match(/\{[\s\S]*\}/);
