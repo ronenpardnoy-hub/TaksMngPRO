@@ -606,7 +606,17 @@ function App() {
     setImportStep('importing');
     await new Promise(r=>setTimeout(r,300));
     const nameToId={};
-    (importPrev.goals||[]).forEach(g=>(g.tasks||[]).forEach(t=>(t.assignees||[]).forEach(a=>{if(typeof a==='string'&&a.trim()){const n=a.trim().toLowerCase();const ex=team.find(m=>m.name.toLowerCase()===n);if(ex){nameToId[n]=ex.id;}else{const id=`t${Date.now()}_${uid6()}`;addMember({id,name:a.trim(),role:'Imported',email:''});nameToId[n]=id;}}})));
+    const newMembers=[];
+    (importPrev.goals||[]).forEach(g=>(g.tasks||[]).forEach(t=>(t.assignees||[]).forEach(a=>{
+      if(typeof a==='string'&&a.trim()){
+        const n=a.trim().toLowerCase();
+        if(nameToId[n]) return;
+        const ex=team.find(m=>m.name.toLowerCase()===n);
+        if(ex){ nameToId[n]=ex.id; }
+        else { const id=`t${Date.now()}_${uid6()}`; nameToId[n]=id; newMembers.push({id,name:a.trim(),role:'Imported',email:''}); }
+      }
+    })));
+    newMembers.forEach(m=>addMember(m));
     (importPrev.goals||[]).forEach(g=>{const goal={id:`g${Date.now()}_${uid6()}`,name:g.name||'New Goal',quarter:+g.quarter||1,tasks:(g.tasks||[]).map(t=>({id:`tk${Date.now()}_${uid6()}`,name:t.name||'Task',quarter:+t.quarter||+g.quarter||1,month:+t.month||1,assigneeIds:(t.assignees||[]).map(a=>nameToId[a?.trim?.().toLowerCase()]).filter(Boolean),completed:false,subtasks:(t.subtasks||[]).map(s=>({id:`s${Date.now()}_${uid6()}`,name:typeof s==='string'?s:s.name||'Step',month:typeof s==='object'?+s.month||1:1,completed:false}))}))};addGoal(goal);setExpanded(p=>({...p,[goal.id]:true}));});
     (importPrev.kpis||[]).forEach(k=>addKpi({id:`k${Date.now()}_${uid6()}`,category:k.category||'Imported',name:k.name||'KPI',owner:k.owner||'',baseline:String(k.baseline||''),goal:String(k.goal||''),unit:k.unit||'%',type:k.type==='lower'?'lower':'higher',targets:k.targets||{},actuals:k.actuals||{},details:k.details||{}}));
     setImportM(false);setImportTxt('');setImportPrev(null);setImportStep('input');setFileName('');
