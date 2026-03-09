@@ -570,25 +570,34 @@ function App() {
         throw new Error(`API ${res.status}: ${errBody.slice(0,200)}`);
       }
       const data=await res.json();
-      // Handle both direct response and edge function wrapper
+      console.log('Edge fn response:', JSON.stringify(data).slice(0,300));
+      // Handle response from Edge Function
       let raw='';
-      if(data.content){
+      if(data.content && Array.isArray(data.content)){
         raw=data.content.map(b=>b.type==='text'?b.text:'').join('').trim();
       } else if(data.error){
-        throw new Error(data.error);
+        throw new Error('Edge function error: '+JSON.stringify(data.error));
+      } else if(typeof data==='string'){
+        raw=data;
       } else {
-        throw new Error('Unexpected response: '+JSON.stringify(data).slice(0,100));
+        throw new Error('Bad response shape: '+JSON.stringify(data).slice(0,200));
       }
-      // Strip markdown code fences if present
-      raw=raw.replace(/^```(?:json)?\s*/,'').replace(/\s*```$/,'').trim();
-      const m=raw.match(/\{[\s\S]*\}/);
-      if(!m)throw new Error('No JSON found in response. Raw: '+raw.slice(0,100));
+      // Strip markdown fences
+      raw=raw.replace(/```json/g,'').replace(/```/g,'').trim();
+      // Find JSON object
+      const start=raw.indexOf('{');
+      const end=raw.lastIndexOf('}');
+      if(start===-1||end===-1)throw new Error('No JSON in response. Got: '+raw.slice(0,150));
       let p;
-      try{ p=JSON.parse(m[0]); }
-      catch(e){ throw new Error('JSON parse error: '+e.message); }
+      try{ p=JSON.parse(raw.slice(start,end+1)); }
+      catch(e){ throw new Error('Parse error: '+e.message+' Raw: '+raw.slice(0,100)); }
       if(!p.goals?.length&&!p.kpis?.length){setImportErr('No data detected.');setImportStep('input');return;}
       setImportPrev(p);setImportStep('preview');
-    }catch(e){setImportErr(`Analysis failed: ${e.message}`);setImportStep('input');}
+    }catch(e){
+      const msg = e?.message || (typeof e==='object'?JSON.stringify(e):String(e));
+      setImportErr(`Analysis failed: ${msg}`);
+      setImportStep('input');
+    }
     finally{window.__pif=null;}
   };
 
