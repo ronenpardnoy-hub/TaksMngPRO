@@ -235,10 +235,18 @@ function useAppData() {
   const uid=user?.id||null;
 
   // ── Auth ──────────────────────────────────────────────────────────────────
-  const signIn=()=>window._db.auth.signInWithOAuth({
-    provider:'google',
-    options:{redirectTo: window.location.href, queryParams:{prompt:'select_account'}},
-  });
+  const signIn=async()=>{
+    // Clear any existing session first to prevent login loops
+    await window._db.auth.signOut();
+    return window._db.auth.signInWithOAuth({
+      provider:'google',
+      options:{
+        redirectTo: window.location.origin + window.location.pathname,
+        queryParams:{prompt:'select_account'},
+        skipBrowserRedirect: false,
+      },
+    });
+  };
   const signOut=async()=>{
     await window._db.auth.signOut();
     setReady(false); setGoals([]); setKpis([]); setTeam([]);
@@ -545,7 +553,10 @@ function App() {
     const SYS=`You are an IT project data extraction assistant. Extract ALL goals, tasks, subtasks, and KPIs. Return ONLY raw JSON, no markdown. Format: {"goals":[{"name":"string","quarter":1,"tasks":[{"name":"string","quarter":1,"month":3,"assignees":["Name"],"subtasks":[{"name":"string","month":3}]}]}],"kpis":[{"category":"string","name":"string","owner":"string","baseline":"string","goal":"string","unit":"string","type":"higher","targets":{},"actuals":{},"details":{}}]}`;
     try{
       const content=hasF&&window.__pif?[{type:'image',source:{type:'base64',media_type:window.__pif.mime,data:window.__pif.base64}},{type:'text',text:'Extract all goals, tasks and KPIs.'}]:`Extract ALL goals, tasks, subtasks and KPIs from:\n\n${importTxt}`;
-      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,system:SYS,messages:[{role:'user',content}]})});
+      // ⚠️  Set your Anthropic API key here — one key works for all users
+      const apiKey = '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';
+      if(apiKey.includes('REPLACE')){setImportErr('AI Import not configured. Add your Anthropic API key to the HTML file.');setImportStep('input');return;}
+      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey.trim(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,system:SYS,messages:[{role:'user',content}]})});
       if(!res.ok)throw new Error(`API ${res.status}`);
       const data=await res.json();
       const raw=data.content?.map(b=>b.type==='text'?b.text:'').join('').trim();
@@ -1132,6 +1143,7 @@ function App() {
             <input type="file" style={{display:'none'}} accept=".xlsx,.xls,.csv,.txt,.pdf,image/*" onChange={onFile}/>
           </label>
           <textarea style={{width:'100%',height:100,borderRadius:10,border:'1px solid rgba(255,255,255,0.08)',padding:'10px 12px',fontSize:10,outline:'none',resize:'none',fontWeight:500,background:'rgba(255,255,255,0.04)',color:'#e2e8f0'}} placeholder="Or paste goals, tasks, KPIs from Excel, email, Word…" value={importTxt} onChange={e=>setImportTxt(e.target.value)}/>
+
           {importErr&&<div style={{fontSize:10,color:'#f87171',background:'rgba(239,68,68,0.1)',borderRadius:8,padding:'6px 10px',marginTop:8,textAlign:'center'}}>{importErr}</div>}
           <div style={{display:'flex',gap:8,marginTop:12}}><BtnGhost onClick={()=>setImportM(false)}/><Btn onClick={analyze} disabled={!importTxt.trim()&&!window.__pif}>Analyze Data</Btn></div>
         </>}
