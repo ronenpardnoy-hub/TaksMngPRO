@@ -555,13 +555,12 @@ function App() {
       const content=hasF&&window.__pif?[{type:'image',source:{type:'base64',media_type:window.__pif.mime,data:window.__pif.base64}},{type:'text',text:'Extract all goals, tasks and KPIs.'}]:`Extract ALL goals, tasks, subtasks and KPIs from:\n\n${importTxt}`;
       // ⚠️  Set your Anthropic API key here — one key works for all users
       // Call Supabase Edge Function — API key stays secure on the server
-      const session = await window._db.auth.getSession();
-      const token = session?.data?.session?.access_token || '';
       const res=await fetch(`${window.SUPABASE_URL}/functions/v1/ai-import`,{
         method:'POST',
         headers:{
           'Content-Type':'application/json',
-          'Authorization': `Bearer ${token}`,
+          'apikey': window.SUPABASE_ANON,
+          'Authorization': `Bearer ${window.SUPABASE_ANON}`,
         },
         body:JSON.stringify({system:SYS, messages:[{role:'user',content}]}),
       });
