@@ -66,10 +66,23 @@ if (window.SUPABASE_URL.indexOf('REPLACE') !== -1 || window.SUPABASE_ANON.indexO
   );
 } else {
   try {
-    const _client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON);
-    // Supabase v2 UMD exposes client directly
-    window._db = _client;
-    console.log('Supabase client created:', typeof _client, Object.keys(_client).slice(0,5));
+    // Supabase v2 UMD bundle: try all known export shapes
+    let _factory = null;
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+      _factory = window.supabase.createClient;
+    } else if (window.supabaseJs && typeof window.supabaseJs.createClient === 'function') {
+      _factory = window.supabaseJs.createClient;
+    } else if (typeof createClient === 'function') {
+      _factory = createClient;
+    }
+    
+    if (!_factory) {
+      _showError('Supabase SDK not found', 
+        'Available globals: ' + Object.keys(window).filter(k=>k.toLowerCase().includes('supa')).join(', '));
+    } else {
+      window._db = _factory(window.SUPABASE_URL, window.SUPABASE_ANON);
+      console.log('Supabase client ready, has .from:', typeof window._db.from);
+    }
   } catch(e) {
     _showError('Failed to connect to Supabase', e.message);
   }
