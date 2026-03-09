@@ -570,10 +570,22 @@ function App() {
         throw new Error(`API ${res.status}: ${errBody.slice(0,200)}`);
       }
       const data=await res.json();
-      const raw=data.content?.map(b=>b.type==='text'?b.text:'').join('').trim();
-      const m=raw?.match(/\{[\s\S]*\}/);
-      if(!m)throw new Error('Could not parse response');
-      const p=JSON.parse(m[0]);
+      // Handle both direct response and edge function wrapper
+      let raw='';
+      if(data.content){
+        raw=data.content.map(b=>b.type==='text'?b.text:'').join('').trim();
+      } else if(data.error){
+        throw new Error(data.error);
+      } else {
+        throw new Error('Unexpected response: '+JSON.stringify(data).slice(0,100));
+      }
+      // Strip markdown code fences if present
+      raw=raw.replace(/^```(?:json)?\s*/,'').replace(/\s*```$/,'').trim();
+      const m=raw.match(/\{[\s\S]*\}/);
+      if(!m)throw new Error('No JSON found in response. Raw: '+raw.slice(0,100));
+      let p;
+      try{ p=JSON.parse(m[0]); }
+      catch(e){ throw new Error('JSON parse error: '+e.message); }
       if(!p.goals?.length&&!p.kpis?.length){setImportErr('No data detected.');setImportStep('input');return;}
       setImportPrev(p);setImportStep('preview');
     }catch(e){setImportErr(`Analysis failed: ${e.message}`);setImportStep('input');}
