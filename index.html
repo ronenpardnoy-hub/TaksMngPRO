@@ -14,8 +14,6 @@
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <!-- Babel for JSX in browser -->
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<!-- Recharts (pinned, reliable CDN) -->
-<script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.js"></script>
 <!-- Supabase JS v2 -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
@@ -68,23 +66,89 @@ if (window.SUPABASE_URL.indexOf('REPLACE') !== -1 || window.SUPABASE_ANON.indexO
   );
 } else {
   try {
-    // Supabase v2 UMD: window.supabase = { createClient, ... }
-    if (typeof window.supabase === 'undefined') {
-      _showError('Supabase SDK failed to load', 'Check your internet connection.');
-    } else {
-      window._db = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON);
-      console.log('Supabase ready, .from =', typeof window._db.from);
-    }
+    window._db = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON);
   } catch(e) {
-    _showError('Supabase init failed: ' + e.message, 'Check your project URL and anon key.');
+    _showError('Failed to connect to Supabase', e.message);
   }
 }
 </script>
 
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useCallback, useMemo, useRef } = React;
-const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-        ResponsiveContainer, AreaChart, Area } = Recharts;
+
+// ─── MINI CHARTS (no external deps needed) ───────────────────────────────────
+const MiniBarChart = ({data, keys, colors=['#10b981','#6366f1'], height=160}) => {
+  const max = Math.max(...data.flatMap(d => keys.map(k => +d[k]||0)), 1);
+  return (
+    <div style={{height, display:'flex', alignItems:'flex-end', gap:2, padding:'0 4px 16px', position:'relative'}}>
+      {[0.25,0.5,0.75,1].map(p=>(
+        <div key={p} style={{position:'absolute',left:0,right:0,bottom:`calc(16px + ${p*(height-16)}px)`,borderTop:'1px solid rgba(255,255,255,0.04)',pointerEvents:'none'}}/>
+      ))}
+      {data.map((d,i)=>(
+        <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',height:'100%',justifyContent:'flex-end'}}>
+          <div style={{width:'100%',display:'flex',alignItems:'flex-end',gap:1,height:'calc(100% - 16px)'}}>
+            {keys.map((k,ki)=>{
+              const pct=(+d[k]||0)/max*100;
+              return <div key={k} title={`${d.name}: ${d[k]||0}`} style={{flex:1,height:`${pct}%`,background:colors[ki],borderRadius:'3px 3px 0 0',minHeight:pct>0?2:0,transition:'height .5s ease'}}/>;
+            })}
+          </div>
+          <div style={{fontSize:7,color:'#475569',fontWeight:700,marginTop:2,whiteSpace:'nowrap'}}>{d.name}</div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const MiniAreaChart = ({data, dataKey, color='#6366f1', height=160}) => {
+  const vals = data.map(d=>+d[dataKey]||0);
+  const max = Math.max(...vals,1);
+  const W=300, H=height-24;
+  const pts = vals.map((v,i)=>[i/(vals.length-1||1)*W, H-(v/max)*H]);
+  const line = pts.map((p,i)=>(i===0?`M${p[0]},${p[1]}`:`L${p[0]},${p[1]}`)).join(' ');
+  const area = line+` L${W},${H} L0,${H} Z`;
+  const gid = `ag${Math.random().toString(36).slice(2,6)}`;
+  return (
+    <div style={{height}}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none" style={{display:'block'}}>
+        <defs><linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.3"/>
+          <stop offset="100%" stopColor={color} stopOpacity="0"/>
+        </linearGradient></defs>
+        <path d={area} fill={`url(#${gid})`}/>
+        <path d={line} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+      <div style={{display:'flex',justifyContent:'space-between',padding:'2px 4px 0'}}>
+        {data.filter((_,i)=>i===0||i===data.length-1||i%3===0).map((d,i)=>(
+          <span key={i} style={{fontSize:7,color:'#475569',fontWeight:700}}>{d.name}</span>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const MiniDualChart = ({data, k1, k2, c1='#6366f1', c2='#10b981', height=70}) => {
+  const all = data.flatMap(d=>[(+d[k1]||0),(+d[k2]||0)]);
+  const max = Math.max(...all,1);
+  const W=300, H=height;
+  const path = (key,col) => {
+    const pts = data.map((d,i)=>[i/(data.length-1||1)*W, H-((+d[key]||0)/max)*H]);
+    return pts.map((p,i)=>(i===0?`M${p[0]},${p[1]}`:`L${p[0]},${p[1]}`)).join(' ');
+  };
+  const p1=path(k1), p2=path(k2);
+  const gid=`dg${Math.random().toString(36).slice(2,5)}`;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={height} preserveAspectRatio="none">
+      <defs><linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor={c1} stopOpacity="0.2"/>
+        <stop offset="100%" stopColor={c1} stopOpacity="0"/>
+      </linearGradient></defs>
+      <path d={p1+` L${W},${H} L0,${H} Z`} fill={`url(#${gid})`}/>
+      <path d={p1} fill="none" stroke={c1} strokeWidth="1.5" strokeLinecap="round"/>
+      <path d={p2} fill="none" stroke={c2} strokeWidth="1.5" strokeLinecap="round" strokeDasharray="4 3"/>
+    </svg>
+  );
+};
+
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -702,33 +766,11 @@ function App() {
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:16}}>
             <div style={{...card,borderRadius:16,padding:16}}>
               <div style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:'#64748b',marginBottom:12}}>Tasks by Quarter</div>
-              <div style={{height:160}}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={qData} margin={{top:0,right:0,left:-25,bottom:0}}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)"/>
-                    <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} tick={{fill:'#64748b'}}/>
-                    <YAxis fontSize={9} axisLine={false} tickLine={false} tick={{fill:'#64748b'}}/>
-                    <Tooltip contentStyle={{background:'#0f172a',border:'none',borderRadius:10,fontSize:10,color:'#fff'}}/>
-                    <Bar dataKey="completed" stackId="a" fill="#10b981" radius={[0,0,4,4]} barSize={28} name="Done"/>
-                    <Bar dataKey="open" stackId="a" fill="#6366f1" radius={[4,4,0,0]} barSize={28} name="Open"/>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <div style={{height:160}}><MiniBarChart data={qData} keys={["completed","open"]} colors={["#10b981","#6366f1"]} height={160}/></div>
             </div>
             <div style={{...card,borderRadius:16,padding:16}}>
               <div style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:'#64748b',marginBottom:12}}>Monthly Workload</div>
-              <div style={{height:160}}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={mData} margin={{top:0,right:0,left:-25,bottom:0}}>
-                    <defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#6366f1" stopOpacity={0.3}/><stop offset="100%" stopColor="#6366f1" stopOpacity={0}/></linearGradient></defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)"/>
-                    <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} tick={{fill:'#64748b'}} interval={1}/>
-                    <YAxis fontSize={9} axisLine={false} tickLine={false} tick={{fill:'#64748b'}}/>
-                    <Tooltip contentStyle={{background:'#0f172a',border:'none',borderRadius:10,fontSize:10,color:'#fff'}}/>
-                    <Area type="monotone" dataKey="tasks" stroke="#6366f1" fill="url(#wg)" strokeWidth={2} name="Tasks"/>
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+              <div style={{height:160}}><MiniAreaChart data={mData} dataKey="tasks" color="#6366f1" height={160}/></div>
             </div>
           </div>
 
@@ -755,18 +797,7 @@ function App() {
                       <span style={{fontSize:8,fontWeight:900,padding:'2px 8px',borderRadius:20,background:'rgba(16,185,129,0.1)',color:'#34d399'}}>{md.length} done</span>
                       <span style={{fontSize:8,fontWeight:900,padding:'2px 8px',borderRadius:20,background:'rgba(99,102,241,0.1)',color:'#818cf8'}}>{mt.length-md.length} open</span>
                     </div>
-                    <div style={{height:60}}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={td} margin={{top:2,right:0,left:-35,bottom:0}}>
-                          <defs><linearGradient id={`mg${m.id}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#6366f1" stopOpacity={0.3}/><stop offset="100%" stopColor="#6366f1" stopOpacity={0}/></linearGradient></defs>
-                          <XAxis dataKey="name" fontSize={7} axisLine={false} tickLine={false} tick={{fill:'#475569'}}/>
-                          <YAxis fontSize={7} axisLine={false} tickLine={false} tick={{fill:'#475569'}} allowDecimals={false}/>
-                          <Tooltip contentStyle={{background:'#0f172a',border:'none',borderRadius:6,fontSize:8,color:'#fff'}}/>
-                          <Area type="monotone" dataKey="total" stroke="#6366f1" fill={`url(#mg${m.id})`} strokeWidth={1.5} dot={false}/>
-                          <Area type="monotone" dataKey="done" stroke="#10b981" fill="none" strokeWidth={1.5} dot={false} strokeDasharray="3 2"/>
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
+                    <div style={{height:60}}><MiniDualChart data={td} k1="total" k2="done" c1="#6366f1" c2="#10b981" height={60}/></div>
                   </div>
                 );
               })}
@@ -929,32 +960,10 @@ function App() {
                     </div>
                     {mt.length>0&&<>
                       <div><div style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',color:'#64748b',marginBottom:8}}>Monthly Workload</div>
-                        <div style={{height:80}}>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={mmd} margin={{top:0,right:0,left:-28,bottom:0}}>
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)"/>
-                              <XAxis dataKey="name" fontSize={8} axisLine={false} tickLine={false} tick={{fill:'#64748b'}}/>
-                              <YAxis fontSize={8} axisLine={false} tickLine={false} tick={{fill:'#64748b'}} allowDecimals={false}/>
-                              <Tooltip contentStyle={{background:'#0f172a',border:'none',borderRadius:8,fontSize:9,color:'#fff'}}/>
-                              <Bar dataKey="done" stackId="a" fill="#10b981" radius={[0,0,2,2]} barSize={8}/>
-                              <Bar dataKey="total" stackId="b" fill="rgba(99,102,241,0.2)" radius={[2,2,0,0]} barSize={8}/>
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
+                        <div style={{height:80}}><MiniBarChart data={mmd} keys={["done","total"]} colors={["#10b981","rgba(99,102,241,0.4)"]} height={80}/></div>
                       </div>
                       <div><div style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',color:'#64748b',marginBottom:8}}>Quarterly Breakdown</div>
-                        <div style={{height:80}}>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={qb} margin={{top:0,right:0,left:-28,bottom:0}}>
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)"/>
-                              <XAxis dataKey="name" fontSize={8} axisLine={false} tickLine={false} tick={{fill:'#64748b'}}/>
-                              <YAxis fontSize={8} axisLine={false} tickLine={false} tick={{fill:'#64748b'}} allowDecimals={false}/>
-                              <Tooltip contentStyle={{background:'#0f172a',border:'none',borderRadius:8,fontSize:9,color:'#fff'}}/>
-                              <Bar dataKey="done" stackId="a" fill="#10b981" radius={[0,0,2,2]} barSize={14}/>
-                              <Bar dataKey="open" stackId="a" fill="#6366f1" radius={[2,2,0,0]} barSize={14}/>
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
+                        <div style={{height:80}}><MiniBarChart data={qb} keys={["done","open"]} colors={["#10b981","#6366f1"]} height={80}/></div>
                       </div>
                     </>}
                     {mt.length===0&&<div style={{textAlign:'center',padding:'12px 0',fontSize:9,fontWeight:700,color:'#475569'}}>No tasks assigned yet</div>}
