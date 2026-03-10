@@ -541,16 +541,16 @@ function App() {
     const SYS=`You are an IT project data extraction assistant. Extract ALL goals, tasks, subtasks, and KPIs. Return ONLY raw JSON, no markdown. Format: {"goals":[{"name":"string","quarter":1,"tasks":[{"name":"string","quarter":1,"month":3,"assignees":["Name"],"subtasks":[{"name":"string","month":3}]}]}],"kpis":[{"category":"string","name":"string","owner":"string","baseline":"string","goal":"string","unit":"string","type":"higher","targets":{},"actuals":{},"details":{}}]}`;
     try{
       const content=hasF&&window.__pif?[{type:'image',source:{type:'base64',media_type:window.__pif.mime,data:window.__pif.base64}},{type:'text',text:'Extract all goals, tasks and KPIs.'}]:`Extract ALL goals, tasks, subtasks and KPIs from:\n\n${importTxt}`;
-      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,system:SYS,messages:[{role:'user',content}]})});
-      if(!res.ok)throw new Error(`API ${res.status}`);
+      const res=await fetch(`${window.SUPABASE_URL}/functions/v1/ai-import`,{method:'POST',headers:{'Content-Type':'application/json','apikey':window.SUPABASE_ANON,'Authorization':`Bearer ${window.SUPABASE_ANON}`},body:JSON.stringify({system:SYS,messages:[{role:'user',content}]})});
+      if(!res.ok){const t=await res.text().catch(()=>'');throw new Error(`Edge Function ${res.status}: ${t.slice(0,120)}`);}
       const data=await res.json();
       const raw=data.content?.map(b=>b.type==='text'?b.text:'').join('').trim();
-      const m=raw?.match(/\{[\s\S]*\}/);
-      if(!m)throw new Error('Could not parse response');
-      const p=JSON.parse(m[0]);
+      const start=raw?.indexOf('{'),end=raw?.lastIndexOf('}');
+      if(start===-1||end===-1)throw new Error('Could not parse response');
+      const p=JSON.parse(raw.slice(start,end+1));
       if(!p.goals?.length&&!p.kpis?.length){setImportErr('No data detected.');setImportStep('input');return;}
       setImportPrev(p);setImportStep('preview');
-    }catch(e){setImportErr(`Analysis failed: ${e.message}`);setImportStep('input');}
+    }catch(e){setImportErr(`Analysis failed: ${e?.message||JSON.stringify(e)}`);setImportStep('input');}
     finally{window.__pif=null;}
   };
 
