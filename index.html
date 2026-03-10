@@ -745,7 +745,7 @@ function App() {
                 <tbody>
                   {kpis.map(kpi=>{
                     const ytd=getYTD(kpi),trend=getTrend(kpi);
-                    const hasD=Object.values(kpi.details||{}).some(d=>d&&d.trim());
+                    const hasD=Object.values(kpi.details||{}).some(d=>d!=null&&String(d).trim());
                     return (
                       <React.Fragment key={kpi.id}>
                         <tr style={{borderTop:dm?'2px solid rgba(255,255,255,0.04)':'2px solid #f1f5f9'}}>
