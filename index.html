@@ -292,6 +292,7 @@ function useAppData() {
         });
         setGoals(SEED_GOALS); setKpis(SEED_KPIS); setTeam(SEED_TEAM);
         localState.current={goals:SEED_GOALS,kpis:SEED_KPIS,team:SEED_TEAM};
+        try{localStorage.setItem('taskmng_show_demo_notice','1');}catch{}
       } else if(data){
         setGoals(data.goals||[]); setKpis(sanitizeKpis(data.kpis)); setTeam(data.team||[]);
         localState.current={goals:data.goals||[],kpis:sanitizeKpis(data.kpis),team:data.team||[]};
@@ -474,6 +475,8 @@ function App() {
   const [dm,setDm]=useState(true);
   const [priv,setPriv]=useState(true);
   const [locked,setLocked]=useState(false);
+  const [undoStack,setUndoStack]=useState([]); // [{label, restore fn, timer}]
+  const undoTimers=useRef({});
 
   // KPI modals
   const [kpiModal,setKpiModal]=useState(null);
@@ -494,6 +497,7 @@ function App() {
   const [editTaskM,setEditTaskM]=useState(null);
   const [editTaskF,setEditTaskF]=useState({name:'',quarter:1,month:1,assigneeIds:[]});
   const [resetM,setResetM]=useState(false);
+  const [demoNotice,setDemoNotice]=useState(false);
 
   // Team
   const [editMemM,setEditMemM]=useState(null);
@@ -512,6 +516,17 @@ function App() {
 
   // Computed
   const allTasks=useMemo(()=>goals.flatMap(g=>g.tasks||[]),[goals]);
+
+  // Show demo notice once for new users
+  useEffect(()=>{
+    if(!ready) return;
+    try{
+      if(localStorage.getItem('taskmng_show_demo_notice')==='1'){
+        localStorage.removeItem('taskmng_show_demo_notice');
+        setDemoNotice(true);
+      }
+    }catch{}
+  },[ready]);
   const doneCnt=useMemo(()=>allTasks.filter(t=>t.completed||getTaskProgress(t)===100).length,[allTasks]);
   const prog=useMemo(()=>!goals.length?0:Math.round(goals.reduce((a,g)=>a+getGoalProgress(g),0)/goals.length),[goals]);
   const qData=useMemo(()=>[1,2,3,4].map(q=>{const qt=allTasks.filter(t=>t.quarter===q),c=qt.filter(t=>t.completed||getTaskProgress(t)===100).length;return{name:`Q${q}`,completed:c,open:qt.length-c};}),[allTasks]);
@@ -519,6 +534,22 @@ function App() {
   const filtGoals=useMemo(()=>goals.map(g=>({...g,tasks:(g.tasks||[]).filter(t=>{const ms=!search||t.name.toLowerCase().includes(search.toLowerCase());const mf=filter==='all'||(filter==='done'&&(t.completed||getTaskProgress(t)===100))||(filter==='open'&&!t.completed&&getTaskProgress(t)<100);return ms&&mf;})})).filter(g=>g.tasks.length>0||!search),[goals,search,filter]);
 
   // KPI
+  // ── Soft-delete with undo toast ───────────────────────────────────────────
+  const UNDO_MS = 5000;
+  const softDelete = (label, deleteFn, undoFn) => {
+    deleteFn();
+    const id = `undo_${Date.now()}`;
+    const timer = setTimeout(() => {
+      setUndoStack(p => p.filter(u => u.id !== id));
+    }, UNDO_MS);
+    undoTimers.current[id] = timer;
+    setUndoStack(p => [...p, {id, label, undo: () => {
+      clearTimeout(undoTimers.current[id]);
+      undoFn();
+      setUndoStack(p2 => p2.filter(u => u.id !== id));
+    }}]);
+  };
+
   const openKpiM=(kpi,m)=>{setKpiModal({kpi,m});setKpiForm({target:(kpi.targets||{})[m]??'',actual:(kpi.actuals||{})[m]??'',details:(kpi.details||{})[m]??''});};
   const saveKpiM=()=>{mutateKpi(kpiModal.kpi.id,k=>({...k,targets:{...k.targets,[kpiModal.m]:kpiForm.target!==''?+kpiForm.target:null},actuals:{...k.actuals,[kpiModal.m]:kpiForm.actual!==''?+kpiForm.actual:null},details:{...k.details,[kpiModal.m]:kpiForm.details}}));setKpiModal(null);};
 
@@ -764,11 +795,11 @@ function App() {
                       <React.Fragment key={kpi.id}>
                         <tr style={{borderTop:dm?'2px solid rgba(255,255,255,0.04)':'2px solid #f1f5f9'}}>
                           <td rowSpan={hasD?3:2} style={{padding:'6px 8px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',fontSize:14,fontWeight:900,textAlign:'center',textTransform:'uppercase',background:'rgba(16,185,129,0.08)',color:'#34d399',lineHeight:1.3}}>{kpi.category}</td>
-                          <td rowSpan={hasD?3:2} style={{padding:'6px 8px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',fontWeight:700,position:'relative',minWidth:140}}>
-                            <div style={{display:'flex',alignItems:'center',gap:4}}>{kpi.isAuto&&<I n="zap" size={9} color="#fbbf24"/>}<span style={{fontSize:13}}>{kpi.name}</span></div>
-                            <div style={{position:'absolute',right:4,top:'50%',transform:'translateY(-50%)',display:'flex',gap:2}} className="kpi-btns">
-                              <button onClick={()=>{setEditKpiF({category:kpi.category,name:kpi.name,owner:kpi.owner,baseline:kpi.baseline,goal:kpi.goal,unit:kpi.unit,type:kpi.type});setEditKpiM(kpi);}} style={{padding:3,borderRadius:4,background:'none',border:'none',cursor:'pointer',color:'#818cf8'}}><I n="pen" size={10}/></button>
-                              {!kpi.isAuto&&<button onClick={()=>deleteKpi(kpi.id)} style={{padding:3,borderRadius:4,background:'none',border:'none',cursor:'pointer',color:'#f87171'}}><I n="trash" size={10}/></button>}
+                          <td rowSpan={hasD?3:2} style={{padding:'6px 8px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',fontWeight:700,minWidth:160}}>
+                            <div style={{display:'flex',alignItems:'center',gap:4,marginBottom:4}}>{kpi.isAuto&&<I n="zap" size={9} color="#fbbf24"/>}<span style={{fontSize:13,lineHeight:1.3}}>{kpi.name}</span></div>
+                            <div style={{display:'flex',gap:4,opacity:0}} className="kpi-btns">
+                              <button onClick={()=>{setEditKpiF({category:kpi.category,name:kpi.name,owner:kpi.owner,baseline:kpi.baseline,goal:kpi.goal,unit:kpi.unit,type:kpi.type});setEditKpiM(kpi);}} style={{padding:'2px 6px',borderRadius:4,background:'rgba(99,102,241,0.1)',border:'1px solid rgba(99,102,241,0.2)',cursor:'pointer',color:'#818cf8',fontSize:11,fontWeight:700,display:'flex',alignItems:'center',gap:3}}><I n="pen" size={10}/>Edit</button>
+                              {!kpi.isAuto&&<button onClick={()=>softDelete(`KPI "${kpi.name}"`,()=>deleteKpi(kpi.id),()=>addKpi(kpi))} style={{padding:'2px 6px',borderRadius:4,background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.2)',cursor:'pointer',color:'#f87171',fontSize:11,fontWeight:700,display:'flex',alignItems:'center',gap:3}}><I n="trash" size={10}/>Delete</button>}
                             </div>
                           </td>
                           <td rowSpan={hasD?3:2} style={{padding:'6px 4px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center'}}><Avatar name={kpi.owner}/><div style={{fontSize:13,color:'#64748b',marginTop:2}}>{kpi.owner?.split(' ')[0]}</div></td>
@@ -873,7 +904,7 @@ function App() {
                   </div>
                   <div style={{display:'flex',gap:4}} onClick={e=>e.stopPropagation()}>
                     <button onClick={e=>{e.stopPropagation();setEditGoalF({name:goal.name,quarter:goal.quarter});setEditGoalM(goal);}} style={{padding:6,borderRadius:8,background:'none',border:'none',cursor:'pointer',color:'#818cf8'}}><I n="pen" size={13}/></button>
-                    <button onClick={e=>{e.stopPropagation();deleteGoal(goal.id);}} style={{padding:6,borderRadius:8,background:'none',border:'none',cursor:'pointer',color:'#f87171'}}><I n="trash" size={13}/></button>
+                    <button onClick={e=>{e.stopPropagation();softDelete(`Goal "${goal.name}"`,()=>deleteGoal(goal.id),()=>addGoal(goal));}} style={{padding:6,borderRadius:8,background:'none',border:'none',cursor:'pointer',color:'#f87171'}}><I n="trash" size={13}/></button>
                   </div>
                 </div>
 
@@ -983,7 +1014,7 @@ function App() {
                     </div>
                     <div style={{display:'flex',gap:4,flexShrink:0}}>
                       <button onClick={()=>{setEditMemF({name:m.name,role:m.role||'',email:m.email||''});setEditMemM(m);}} style={{padding:6,borderRadius:8,background:'none',border:'none',cursor:'pointer',color:'#818cf8'}}><I n="pen" size={13}/></button>
-                      <button onClick={()=>deleteMember(m.id)} style={{padding:6,borderRadius:8,background:'none',border:'none',cursor:'pointer',color:'#f87171'}}><I n="trash" size={13}/></button>
+                      <button onClick={()=>softDelete(`Member "${m.name}"`,()=>deleteMember(m.id),()=>addMember(m))} style={{padding:6,borderRadius:8,background:'none',border:'none',cursor:'pointer',color:'#f87171'}}><I n="trash" size={13}/></button>
                     </div>
                   </div>
                   <div style={{padding:16,display:'flex',flexDirection:'column',gap:14}}>
@@ -1249,6 +1280,62 @@ function App() {
           <div style={{textAlign:'center'}}><div style={{fontWeight:900,fontSize:13,marginBottom:4}}>Importing…</div><div style={{fontSize:13,color:'#64748b'}}>Saving to Supabase</div></div>
         </div>}
       </Modal>}
+
+      {/* ── Demo notice (shown once on first login) ── */}
+      {demoNotice&&<div style={{position:'fixed',inset:0,zIndex:70,display:'flex',alignItems:'center',justifyContent:'center',padding:20,background:'rgba(0,0,0,0.75)',backdropFilter:'blur(8px)'}} onClick={()=>setDemoNotice(false)}>
+        <div style={{width:'100%',maxWidth:440,borderRadius:20,background:'#0f172a',border:'1px solid rgba(99,102,241,0.3)',boxShadow:'0 25px 60px rgba(0,0,0,0.6)',overflow:'hidden'}} className="fadein" onClick={e=>e.stopPropagation()}>
+          {/* Header */}
+          <div style={{background:'linear-gradient(135deg,rgba(99,102,241,0.15),rgba(16,185,129,0.1))',padding:'24px 24px 16px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+            <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:8}}>
+              <div style={{width:40,height:40,borderRadius:12,background:'rgba(99,102,241,0.2)',border:'1px solid rgba(99,102,241,0.3)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <I n="sparkles" size={18} color="#818cf8"/>
+              </div>
+              <div>
+                <div style={{fontSize:17,fontWeight:900,color:'#f1f5f9'}}>Welcome to TaskMngPRO!</div>
+                <div style={{fontSize:12,color:'#64748b',marginTop:1}}>You're looking at sample data</div>
+              </div>
+            </div>
+          </div>
+          {/* Body */}
+          <div style={{padding:'20px 24px'}}>
+            <div style={{fontSize:14,color:'#94a3b8',lineHeight:1.7,marginBottom:16}}>
+              To help you get started, we've pre-loaded your workspace with <span style={{color:'#818cf8',fontWeight:700}}>demo goals, KPIs, and team members</span>. This is not real data.
+            </div>
+            <div style={{borderRadius:12,background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',padding:'14px 16px',marginBottom:20}}>
+              <div style={{fontSize:12,fontWeight:800,color:'#e2e8f0',marginBottom:10,textTransform:'uppercase',letterSpacing:'0.06em'}}>To start fresh:</div>
+              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                {[
+                  {n:1,text:'Open the ',bold:'Settings',text2:' tab (⚙ icon in the bottom nav)'},
+                  {n:2,text:'Scroll down to ',bold:'Danger Zone',text2:''},
+                  {n:3,text:'Click ',bold:'"Reset All Data"',text2:' to wipe the demo and start from scratch'},
+                ].map(s=>(
+                  <div key={s.n} style={{display:'flex',alignItems:'flex-start',gap:10}}>
+                    <div style={{width:20,height:20,borderRadius:6,background:'rgba(99,102,241,0.15)',border:'1px solid rgba(99,102,241,0.2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:11,fontWeight:900,color:'#818cf8'}}>{s.n}</div>
+                    <div style={{fontSize:13,color:'#94a3b8',lineHeight:1.5}}>
+                      {s.text}<span style={{color:'#e2e8f0',fontWeight:700}}>{s.bold}</span>{s.text2||''}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <button onClick={()=>setDemoNotice(false)} style={{width:'100%',padding:'12px',borderRadius:12,background:'#4f46e5',color:'#fff',border:'none',cursor:'pointer',fontSize:14,fontWeight:800,letterSpacing:'0.02em',boxShadow:'0 4px 12px rgba(79,70,229,0.35)'}}>
+              Got it — explore the demo
+            </button>
+          </div>
+        </div>
+      </div>}
+
+      {/* ── Undo toast stack ── */}
+      {undoStack.length>0&&<div style={{position:'fixed',bottom:80,left:'50%',transform:'translateX(-50%)',display:'flex',flexDirection:'column',gap:8,zIndex:999,pointerEvents:'none'}}>
+        {undoStack.map(u=>(
+          <div key={u.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 16px',borderRadius:12,background:'#1e293b',border:'1px solid rgba(255,255,255,0.12)',boxShadow:'0 8px 24px rgba(0,0,0,0.5)',pointerEvents:'all',animation:'fadeIn .2s ease'}}>
+            <I n="trash" size={14} color="#f87171"/>
+            <span style={{fontSize:13,fontWeight:600,color:'#e2e8f0'}}>{u.label} deleted</span>
+            <button onClick={u.undo} style={{padding:'4px 12px',borderRadius:8,background:'#4f46e5',color:'#fff',border:'none',cursor:'pointer',fontSize:12,fontWeight:700,marginLeft:4}}>Undo</button>
+            <button onClick={()=>{clearTimeout(undoTimers.current[u.id]);setUndoStack(p=>p.filter(x=>x.id!==u.id));}} style={{background:'none',border:'none',cursor:'pointer',color:'#64748b',padding:2}}><I n="x" size={12}/></button>
+          </div>
+        ))}
+      </div>}
 
     </div>
   );
