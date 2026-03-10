@@ -372,7 +372,7 @@ function useAppData() {
 const Avatar=({name,size='sm'})=>{
   const colors=['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
   const c=colors[(name||'U').charCodeAt(0)%colors.length];
-  return <div style={{backgroundColor:c,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,color:'#fff',flexShrink:0,...(size==='sm'?{width:24,height:24,fontSize:9}:{width:36,height:36,fontSize:14})}}>{(name||'U')[0].toUpperCase()}</div>;
+  return <div style={{backgroundColor:c,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,color:'#fff',flexShrink:0,...(size==='sm'?{width:24,height:24,fontSize:12}:{width:36,height:36,fontSize:14})}}>{(name||'U')[0].toUpperCase()}</div>;
 };
 
 const Ring=({value,size=40,stroke=3})=>{
@@ -381,13 +381,13 @@ const Ring=({value,size=40,stroke=3})=>{
   return <svg width={size} height={size} style={{transform:'rotate(-90deg)'}}>
     <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={stroke}/>
     <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeDasharray={circ} strokeDashoffset={off} strokeLinecap="round" style={{transition:'stroke-dashoffset 0.8s ease'}}/>
-    <text x={size/2} y={size/2} textAnchor="middle" dominantBaseline="middle" style={{transform:`rotate(90deg)`,transformOrigin:`${size/2}px ${size/2}px`,fill:color,fontSize:9,fontWeight:900}}>{value}%</text>
+    <text x={size/2} y={size/2} textAnchor="middle" dominantBaseline="middle" style={{transform:`rotate(90deg)`,transformOrigin:`${size/2}px ${size/2}px`,fill:color,fontSize:12,fontWeight:900}}>{value}%</text>
   </svg>;
 };
 
 const TrendBadge=({value,unit=''})=>{
-  if(!value) return <span style={{color:'#94a3b8',fontSize:9,fontWeight:700}}>— Flat</span>;
-  return <span style={{color:value>0?'#34d399':'#f87171',fontSize:9,fontWeight:700}}>{value>0?'↑':'↓'}{Math.abs(value)}{unit}</span>;
+  if(!value) return <span style={{color:'#94a3b8',fontSize:12,fontWeight:700}}>— Flat</span>;
+  return <span style={{color:value>0?'#34d399':'#f87171',fontSize:12,fontWeight:700}}>{value>0?'↑':'↓'}{Math.abs(value)}{unit}</span>;
 };
 
 // Inline SVG icons
@@ -436,19 +436,19 @@ const MHead=({title,sub,icon,onClose})=>(
   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
     <div style={{display:'flex',alignItems:'center',gap:8}}>
       <div style={{width:28,height:28,borderRadius:10,background:'rgba(99,102,241,0.1)',border:'1px solid rgba(99,102,241,0.2)',display:'flex',alignItems:'center',justifyContent:'center'}}><I n={icon||'pen'} size={13} color="#818cf8"/></div>
-      <div><div style={{fontWeight:900,fontSize:14}}>{title}</div>{sub&&<div style={{fontSize:9,color:'#64748b'}}>{sub}</div>}</div>
+      <div><div style={{fontWeight:900,fontSize:14}}>{title}</div>{sub&&<div style={{fontSize:12,color:'#64748b'}}>{sub}</div>}</div>
     </div>
     <button onClick={onClose} style={{padding:6,borderRadius:8,cursor:'pointer',background:'none',border:'none',color:'#64748b'}}><I n="x" size={14}/></button>
   </div>
 );
 const Btn=({onClick,disabled,children,color='indigo',full=true})=>{
   const bg={indigo:'#4f46e5',emerald:'#059669',red:'#ef4444'}[color]||'#4f46e5';
-  return <button onClick={onClick} disabled={disabled} style={{flex:full?1:undefined,padding:10,borderRadius:12,fontSize:10,fontWeight:900,textTransform:'uppercase',background:disabled?'rgba(99,102,241,0.2)':bg,color:disabled?'#475569':'#fff',border:'none',cursor:disabled?'not-allowed':'pointer',letterSpacing:'0.05em',transition:'all .15s',opacity:disabled?0.5:1}}>{children}</button>;
+  return <button onClick={onClick} disabled={disabled} style={{flex:full?1:undefined,padding:10,borderRadius:12,fontSize:13,fontWeight:900,textTransform:'uppercase',background:disabled?'rgba(99,102,241,0.2)':bg,color:disabled?'#475569':'#fff',border:'none',cursor:disabled?'not-allowed':'pointer',letterSpacing:'0.05em',transition:'all .15s',opacity:disabled?0.5:1}}>{children}</button>;
 };
-const BtnGhost=({onClick})=><button onClick={onClick} style={{flex:1,padding:10,borderRadius:12,fontSize:10,fontWeight:900,textTransform:'uppercase',background:'rgba(255,255,255,0.05)',color:'#94a3b8',border:'none',cursor:'pointer',letterSpacing:'0.05em'}}>Cancel</button>;
+const BtnGhost=({onClick})=><button onClick={onClick} style={{flex:1,padding:10,borderRadius:12,fontSize:13,fontWeight:900,textTransform:'uppercase',background:'rgba(255,255,255,0.05)',color:'#94a3b8',border:'none',cursor:'pointer',letterSpacing:'0.05em'}}>Cancel</button>;
 const Field=({label,value,onChange,onEnter,placeholder,type='text',disabled=false})=>(
   <div>
-    <label style={{fontSize:9,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.08em',display:'block',marginBottom:4}}>{label}</label>
+    <label style={{fontSize:12,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.08em',display:'block',marginBottom:4}}>{label}</label>
     <input type={type} disabled={disabled} value={value||''} onChange={e=>onChange(e.target.value)} onKeyDown={e=>e.key==='Enter'&&onEnter&&onEnter()} placeholder={placeholder}
       style={{width:'100%',padding:'10px 12px',borderRadius:10,fontSize:12,fontWeight:700,background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',color:'#e2e8f0',opacity:disabled?0.4:1}}/>
   </div>
@@ -608,7 +608,7 @@ function App() {
         <div style={{position:'absolute',inset:0,borderRadius:'50%',border:'3px solid rgba(99,102,241,0.2)'}}/>
         <div style={{position:'absolute',inset:0,borderRadius:'50%',border:'3px solid transparent',borderTopColor:'#6366f1'}} className="spin"/>
       </div>
-      <span style={{fontSize:11,color:'#475569',fontWeight:700}}>Initialising…</span>
+      <span style={{fontSize:14,color:'#475569',fontWeight:700}}>Initialising…</span>
     </div>
   );
 
@@ -631,25 +631,25 @@ function App() {
         <div style={{width:'100%',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:20,padding:32,display:'flex',flexDirection:'column',gap:20}}>
           <div style={{textAlign:'center'}}>
             <div style={{fontSize:15,fontWeight:900,color:'#e2e8f0',marginBottom:6}}>Sign in to your workspace</div>
-            <div style={{fontSize:11,color:'#64748b',lineHeight:1.7}}>Each Google account gets its own private workspace — your data is isolated and synced in real-time across all your devices.</div>
+            <div style={{fontSize:14,color:'#64748b',lineHeight:1.7}}>Each Google account gets its own private workspace — your data is isolated and synced in real-time across all your devices.</div>
           </div>
 
           <button className="google-btn" onClick={signIn}>
             <GoogleLogo/> Continue with Google
           </button>
 
-          {dbError&&<div style={{fontSize:10,color:'#f87171',background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.15)',borderRadius:10,padding:'8px 12px',textAlign:'center'}}>{dbError}</div>}
+          {dbError&&<div style={{fontSize:13,color:'#f87171',background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.15)',borderRadius:10,padding:'8px 12px',textAlign:'center'}}>{dbError}</div>}
 
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
             {[{i:'shield',t:'Private per account'},{i:'wifi',t:'Live sync everywhere'},{i:'lock',t:'Secured by Supabase'},{i:'sparkles',t:'AI-powered import'}].map((f,i)=>(
               <div key={i} style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',borderRadius:10,background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.05)'}}>
                 <I n={f.i} size={13} color="#818cf8"/>
-                <span style={{fontSize:10,fontWeight:600,color:'#64748b'}}>{f.t}</span>
+                <span style={{fontSize:13,fontWeight:600,color:'#64748b'}}>{f.t}</span>
               </div>
             ))}
           </div>
         </div>
-        <p style={{fontSize:10,color:'#1e293b',textAlign:'center'}}>Powered by Supabase · Data stored in your project</p>
+        <p style={{fontSize:13,color:'#1e293b',textAlign:'center'}}>Powered by Supabase · Data stored in your project</p>
       </div>
     </div>
   );
@@ -661,12 +661,12 @@ function App() {
         <div style={{position:'absolute',inset:0,borderRadius:'50%',border:'4px solid rgba(99,102,241,0.2)'}}/>
         <div style={{position:'absolute',inset:0,borderRadius:'50%',border:'4px solid transparent',borderTopColor:'#6366f1'}} className="spin"/>
         <div style={{position:'absolute',inset:8,borderRadius:'50%',overflow:'hidden'}}>
-          {user.user_metadata?.avatar_url?<img src={user.user_metadata.avatar_url} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',background:'#4f46e5',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,color:'#fff',fontSize:11}}>{(user.user_metadata?.full_name||'?')[0]}</div>}
+          {user.user_metadata?.avatar_url?<img src={user.user_metadata.avatar_url} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',background:'#4f46e5',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,color:'#fff',fontSize:14}}>{(user.user_metadata?.full_name||'?')[0]}</div>}
         </div>
       </div>
       <div style={{textAlign:'center'}}>
         <div style={{fontWeight:900,fontSize:14}}>Loading your workspace…</div>
-        <div style={{fontSize:10,color:'#64748b',marginTop:4}}>Welcome, {user.user_metadata?.full_name?.split(' ')[0]||'there'}!</div>
+        <div style={{fontSize:13,color:'#64748b',marginTop:4}}>Welcome, {user.user_metadata?.full_name?.split(' ')[0]||'there'}!</div>
       </div>
     </div>
   );
@@ -682,7 +682,7 @@ function App() {
         <p style={{color:'#64748b',fontSize:12}}>{user.user_metadata?.full_name||user.email}</p>
       </div>
       <button onClick={()=>setLocked(false)} style={{padding:'12px 32px',background:'#4f46e5',color:'#fff',borderRadius:12,fontWeight:700,fontSize:14,border:'none',cursor:'pointer',boxShadow:'0 4px 16px rgba(79,70,229,0.3)'}}>Unlock Workspace</button>
-      <button onClick={signOut} style={{fontSize:10,color:'#475569',background:'none',border:'none',cursor:'pointer',textDecoration:'underline'}}>Sign out instead</button>
+      <button onClick={signOut} style={{fontSize:13,color:'#475569',background:'none',border:'none',cursor:'pointer',textDecoration:'underline'}}>Sign out instead</button>
     </div>
   );
 
@@ -697,12 +697,12 @@ function App() {
       {/* ── HEADER ── */}
       <header style={{height:56,position:'sticky',top:0,zIndex:40,display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 20px',background:dm?'rgba(8,12,20,0.92)':'rgba(255,255,255,0.92)',borderBottom:dm?'1px solid rgba(255,255,255,0.05)':'1px solid #e2e8f0',backdropFilter:'blur(16px)'}}>
         <div style={{display:'flex',alignItems:'center',gap:12}}>
-          <div style={{width:32,height:32,borderRadius:8,background:'#4f46e5',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,color:'#fff',fontSize:11,boxShadow:'0 4px 12px rgba(79,70,229,0.3)'}}>IT</div>
+          <div style={{width:32,height:32,borderRadius:8,background:'#4f46e5',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,color:'#fff',fontSize:14,boxShadow:'0 4px 12px rgba(79,70,229,0.3)'}}>IT</div>
           <div><span style={{fontWeight:900,fontSize:14,letterSpacing:'-0.02em'}}>TaskMng</span><span style={{color:'#818cf8',fontWeight:900,fontSize:14}}>PRO</span></div>
-          <span style={{fontSize:8,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',padding:'2px 8px',borderRadius:20,background:'rgba(16,185,129,0.1)',color:'#34d399',border:'1px solid rgba(16,185,129,0.2)'}}>Live</span>
+          <span style={{fontSize:14,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',padding:'2px 8px',borderRadius:20,background:'rgba(16,185,129,0.1)',color:'#34d399',border:'1px solid rgba(16,185,129,0.2)'}}>Live</span>
         </div>
         <div style={{display:'flex',alignItems:'center',gap:6}}>
-          <div style={{display:'flex',alignItems:'center',gap:5,padding:'4px 8px',borderRadius:8,fontSize:9,fontWeight:700,background:syncing?'rgba(245,158,11,0.1)':'rgba(16,185,129,0.1)',color:syncing?'#fbbf24':'#34d399'}}>
+          <div style={{display:'flex',alignItems:'center',gap:5,padding:'4px 8px',borderRadius:8,fontSize:12,fontWeight:700,background:syncing?'rgba(245,158,11,0.1)':'rgba(16,185,129,0.1)',color:syncing?'#fbbf24':'#34d399'}}>
             <I n={syncing?'refresh':'wifi'} size={10} color={syncing?'#fbbf24':'#34d399'}/>{syncing?'Saving…':'Synced'}
           </div>
           {[{icon:priv?'eyeOff':'eye',onClick:()=>setPriv(!priv)},{icon:'lock',onClick:()=>setLocked(true)},{icon:dm?'sun':'moon',onClick:()=>setDm(!dm)}].map((b,i)=>(
@@ -710,9 +710,9 @@ function App() {
           ))}
           <div style={{display:'flex',alignItems:'center',gap:8,padding:'4px 8px 4px 4px',borderRadius:20,background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.06)'}}>
             <div style={{width:26,height:26,borderRadius:'50%',overflow:'hidden',flexShrink:0}}>
-              {avatar_url?<img src={avatar_url} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',background:'#4f46e5',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,fontSize:10,color:'#fff'}}>{display_name[0]}</div>}
+              {avatar_url?<img src={avatar_url} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{width:'100%',height:'100%',background:'#4f46e5',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,fontSize:13,color:'#fff'}}>{display_name[0]}</div>}
             </div>
-            <span style={{fontSize:10,fontWeight:700,color:'#94a3b8',maxWidth:90,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{display_name.split(' ')[0]}</span>
+            <span style={{fontSize:13,fontWeight:700,color:'#94a3b8',maxWidth:90,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{display_name.split(' ')[0]}</span>
             <button onClick={signOut} title="Sign out" style={{padding:3,borderRadius:6,background:'none',border:'none',cursor:'pointer',color:'#475569',display:'flex'}}><I n="x" size={12}/></button>
           </div>
         </div>
@@ -727,8 +727,8 @@ function App() {
               <div key={i} style={{...card,borderRadius:16,padding:16}}>
                 <div style={{width:32,height:32,borderRadius:10,background:`${c.color}18`,border:`1px solid ${c.color}30`,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:12}}><I n={c.icon} size={15} color={c.color}/></div>
                 <div style={{fontSize:24,fontWeight:900,marginBottom:2}}>{c.value}</div>
-                <div style={{fontSize:9,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.08em'}}>{c.label}</div>
-                {c.sub&&<div style={{fontSize:9,color:'#475569',marginTop:2}}>{c.sub}</div>}
+                <div style={{fontSize:12,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.08em'}}>{c.label}</div>
+                {c.sub&&<div style={{fontSize:12,color:'#475569',marginTop:2}}>{c.sub}</div>}
               </div>
             ))}
           </div>
@@ -737,22 +737,22 @@ function App() {
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
             <div>
               <h2 style={{fontSize:15,fontWeight:900,letterSpacing:'-0.02em'}}>2026 IT KPI Scorecard</h2>
-              <p style={{fontSize:10,color:'#64748b',marginTop:2}}>Click any cell to update · Auto-saved to Supabase</p>
+              <p style={{fontSize:13,color:'#64748b',marginTop:2}}>Click any cell to update · Auto-saved to Supabase</p>
             </div>
             <div style={{display:'flex',gap:8}}>
-              <button onClick={openImport} style={{display:'flex',alignItems:'center',gap:6,padding:'6px 12px',borderRadius:10,fontSize:10,fontWeight:900,background:'rgba(99,102,241,0.1)',color:'#818cf8',border:'1px solid rgba(99,102,241,0.2)',cursor:'pointer'}}><I n="sparkles" size={12}/> AI Import</button>
-              <button onClick={()=>setAddKpiM(true)} style={{display:'flex',alignItems:'center',gap:6,padding:'6px 12px',borderRadius:10,fontSize:10,fontWeight:900,background:'#059669',color:'#fff',border:'none',cursor:'pointer',boxShadow:'0 4px 12px rgba(5,150,105,0.3)'}}><I n="plus" size={12}/> New KPI</button>
+              <button onClick={openImport} style={{display:'flex',alignItems:'center',gap:6,padding:'6px 12px',borderRadius:10,fontSize:13,fontWeight:900,background:'rgba(99,102,241,0.1)',color:'#818cf8',border:'1px solid rgba(99,102,241,0.2)',cursor:'pointer'}}><I n="sparkles" size={12}/> AI Import</button>
+              <button onClick={()=>setAddKpiM(true)} style={{display:'flex',alignItems:'center',gap:6,padding:'6px 12px',borderRadius:10,fontSize:13,fontWeight:900,background:'#059669',color:'#fff',border:'none',cursor:'pointer',boxShadow:'0 4px 12px rgba(5,150,105,0.3)'}}><I n="plus" size={12}/> New KPI</button>
             </div>
           </div>
 
           {/* KPI table */}
           <div style={{...card,borderRadius:16,overflow:'hidden'}}>
             <div style={{overflowX:'auto',WebkitOverflowScrolling:'touch'}}>
-              <table style={{width:'100%',borderCollapse:'collapse',background:dm?'#080c14':'#fff',fontSize:9,minWidth:900}}>
+              <table style={{width:'100%',borderCollapse:'collapse',background:dm?'#080c14':'#fff',fontSize:12,minWidth:900}}>
                 <thead>
                   <tr style={{background:dm?'rgba(15,23,42,0.8)':'#f8fafc',borderBottom:dm?'1px solid rgba(255,255,255,0.05)':'1px solid #e2e8f0'}}>
                     {['Category','KPI Name','Owner','Baseline','Goal','YTD','Trend','','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((h,i)=>(
-                      <th key={i} style={{padding:'8px 4px',fontSize:8,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',textAlign:'center',whiteSpace:'nowrap',color:'#64748b',borderRight:dm?'1px solid rgba(255,255,255,0.05)':'1px solid #f1f5f9'}}>{h}</th>
+                      <th key={i} style={{padding:'8px 4px',fontSize:14,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',textAlign:'center',whiteSpace:'nowrap',color:'#64748b',borderRight:dm?'1px solid rgba(255,255,255,0.05)':'1px solid #f1f5f9'}}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -763,27 +763,27 @@ function App() {
                     return (
                       <React.Fragment key={kpi.id}>
                         <tr style={{borderTop:dm?'2px solid rgba(255,255,255,0.04)':'2px solid #f1f5f9'}}>
-                          <td rowSpan={hasD?3:2} style={{padding:'6px 8px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',fontSize:8,fontWeight:900,textAlign:'center',textTransform:'uppercase',background:'rgba(16,185,129,0.08)',color:'#34d399',lineHeight:1.3}}>{kpi.category}</td>
+                          <td rowSpan={hasD?3:2} style={{padding:'6px 8px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',fontSize:14,fontWeight:900,textAlign:'center',textTransform:'uppercase',background:'rgba(16,185,129,0.08)',color:'#34d399',lineHeight:1.3}}>{kpi.category}</td>
                           <td rowSpan={hasD?3:2} style={{padding:'6px 8px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',fontWeight:700,position:'relative',minWidth:140}}>
-                            <div style={{display:'flex',alignItems:'center',gap:4}}>{kpi.isAuto&&<I n="zap" size={9} color="#fbbf24"/>}<span style={{fontSize:10}}>{kpi.name}</span></div>
+                            <div style={{display:'flex',alignItems:'center',gap:4}}>{kpi.isAuto&&<I n="zap" size={9} color="#fbbf24"/>}<span style={{fontSize:13}}>{kpi.name}</span></div>
                             <div style={{position:'absolute',right:4,top:'50%',transform:'translateY(-50%)',display:'flex',gap:2}} className="kpi-btns">
                               <button onClick={()=>{setEditKpiF({category:kpi.category,name:kpi.name,owner:kpi.owner,baseline:kpi.baseline,goal:kpi.goal,unit:kpi.unit,type:kpi.type});setEditKpiM(kpi);}} style={{padding:3,borderRadius:4,background:'none',border:'none',cursor:'pointer',color:'#818cf8'}}><I n="pen" size={10}/></button>
                               {!kpi.isAuto&&<button onClick={()=>deleteKpi(kpi.id)} style={{padding:3,borderRadius:4,background:'none',border:'none',cursor:'pointer',color:'#f87171'}}><I n="trash" size={10}/></button>}
                             </div>
                           </td>
-                          <td rowSpan={hasD?3:2} style={{padding:'6px 4px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center'}}><Avatar name={kpi.owner}/><div style={{fontSize:7,color:'#64748b',marginTop:2}}>{kpi.owner?.split(' ')[0]}</div></td>
-                          <td rowSpan={hasD?3:2} style={{padding:'6px 4px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center',fontSize:9,color:'#64748b',fontWeight:700}}>{kpi.baseline}</td>
-                          <td rowSpan={hasD?3:2} style={{padding:'6px 4px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center',fontSize:9,color:'#818cf8',fontWeight:900}}>{kpi.goal}</td>
+                          <td rowSpan={hasD?3:2} style={{padding:'6px 4px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center'}}><Avatar name={kpi.owner}/><div style={{fontSize:13,color:'#64748b',marginTop:2}}>{kpi.owner?.split(' ')[0]}</div></td>
+                          <td rowSpan={hasD?3:2} style={{padding:'6px 4px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center',fontSize:12,color:'#64748b',fontWeight:700}}>{kpi.baseline}</td>
+                          <td rowSpan={hasD?3:2} style={{padding:'6px 4px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center',fontSize:12,color:'#818cf8',fontWeight:900}}>{kpi.goal}</td>
                           <td rowSpan={hasD?3:2} style={{padding:'6px 4px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center',fontWeight:900,color:ytd!==null?'#34d399':'#475569'}}>{ytd!==null?`${ytd}${kpi.unit}`:'—'}</td>
                           <td rowSpan={hasD?3:2} style={{padding:'6px 4px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center'}}><TrendBadge value={trend} unit={kpi.unit}/></td>
-                          <td style={{padding:'4px 6px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center',fontSize:7,fontWeight:900,textTransform:'uppercase',color:'#475569',background:dm?'rgba(255,255,255,0.02)':'#f8fafc'}}>PLAN</td>
-                          {[...Array(12)].map((_,i)=>{const v=(kpi.targets||{})[i+1];return(<td key={i} onClick={()=>openKpiM(kpi,i+1)} style={{padding:'4px 2px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center',cursor:'pointer',fontSize:9,fontWeight:700,color:dm?'#94a3b8':'#64748b',minWidth:36}}>{v!==null&&v!==undefined&&v!==''?`${v}${kpi.unit}`:''}</td>);})}
+                          <td style={{padding:'4px 6px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center',fontSize:13,fontWeight:900,textTransform:'uppercase',color:'#475569',background:dm?'rgba(255,255,255,0.02)':'#f8fafc'}}>PLAN</td>
+                          {[...Array(12)].map((_,i)=>{const v=(kpi.targets||{})[i+1];return(<td key={i} onClick={()=>openKpiM(kpi,i+1)} style={{padding:'4px 2px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center',cursor:'pointer',fontSize:12,fontWeight:700,color:dm?'#94a3b8':'#64748b',minWidth:36}}>{v!==null&&v!==undefined&&v!==''?`${v}${kpi.unit}`:''}</td>);})}
                         </tr>
                         <tr>
-                          <td style={{padding:'4px 6px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center',fontSize:7,fontWeight:900,textTransform:'uppercase',color:'#475569',background:dm?'rgba(255,255,255,0.02)':'#f8fafc'}}>ACT</td>
-                          {[...Array(12)].map((_,i)=>{const st=getStatus(kpi,i+1),a=(kpi.actuals||{})[i+1],disp=a!==null&&a!==undefined&&a!==''?`${a}${kpi.unit}`:'—';const cc=st==='good'?{background:'#10b981',color:'#fff',fontWeight:900}:st==='bad'?{background:'#ef4444',color:'#fff',fontWeight:900}:st==='data'?{background:dm?'rgba(255,255,255,0.05)':'#f1f5f9',color:dm?'#cbd5e1':'#64748b',fontWeight:700}:{color:dm?'#374151':'#d1d5db'};return(<td key={i} onClick={()=>openKpiM(kpi,i+1)} style={{padding:'4px 2px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center',cursor:'pointer',fontSize:9,minWidth:36,...cc}}>{disp}</td>);})}
+                          <td style={{padding:'4px 6px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center',fontSize:13,fontWeight:900,textTransform:'uppercase',color:'#475569',background:dm?'rgba(255,255,255,0.02)':'#f8fafc'}}>ACT</td>
+                          {[...Array(12)].map((_,i)=>{const st=getStatus(kpi,i+1),a=(kpi.actuals||{})[i+1],disp=a!==null&&a!==undefined&&a!==''?`${a}${kpi.unit}`:'—';const cc=st==='good'?{background:'#10b981',color:'#fff',fontWeight:900}:st==='bad'?{background:'#ef4444',color:'#fff',fontWeight:900}:st==='data'?{background:dm?'rgba(255,255,255,0.05)':'#f1f5f9',color:dm?'#cbd5e1':'#64748b',fontWeight:700}:{color:dm?'#374151':'#d1d5db'};return(<td key={i} onClick={()=>openKpiM(kpi,i+1)} style={{padding:'4px 2px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center',cursor:'pointer',fontSize:12,minWidth:36,...cc}}>{disp}</td>);})}
                         </tr>
-                        {hasD&&<tr><td style={{padding:'4px 6px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center',fontSize:7,fontWeight:700,color:'#475569',background:dm?'rgba(0,0,0,0.2)':'#fafafa'}}>NOTE</td>{[...Array(12)].map((_,i)=><td key={i} onClick={()=>openKpiM(kpi,i+1)} style={{padding:'4px 4px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',fontSize:8,cursor:'pointer',color:'#64748b',minWidth:36}}>{(kpi.details||{})[i+1]||''}</td>)}</tr>}
+                        {hasD&&<tr><td style={{padding:'4px 6px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',textAlign:'center',fontSize:13,fontWeight:700,color:'#475569',background:dm?'rgba(0,0,0,0.2)':'#fafafa'}}>NOTE</td>{[...Array(12)].map((_,i)=><td key={i} onClick={()=>openKpiM(kpi,i+1)} style={{padding:'4px 4px',borderRight:dm?'1px solid rgba(255,255,255,0.04)':'1px solid #f1f5f9',fontSize:14,cursor:'pointer',color:'#64748b',minWidth:36}}>{(kpi.details||{})[i+1]||''}</td>)}</tr>}
                       </React.Fragment>
                     );
                   })}
@@ -795,13 +795,13 @@ function App() {
           {/* Charts */}
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:16}}>
             <div style={{...card,borderRadius:16,padding:16}}>
-              <div style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:'#64748b',marginBottom:12}}>Tasks by Quarter</div>
+              <div style={{fontSize:12,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:'#64748b',marginBottom:12}}>Tasks by Quarter</div>
               <div style={{height:160}}>
                 <SvgBarChart data={qData} h={160}/>
               </div>
             </div>
             <div style={{...card,borderRadius:16,padding:16}}>
-              <div style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:'#64748b',marginBottom:12}}>Monthly Workload</div>
+              <div style={{fontSize:12,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:'#64748b',marginBottom:12}}>Monthly Workload</div>
               <div style={{height:160}}>
                 <SvgAreaChart data={mData} h={160} dataKey="tasks"/>
               </div>
@@ -810,7 +810,7 @@ function App() {
 
           {/* Team distribution */}
           <div>
-            <div style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:'#64748b',marginBottom:12,display:'flex',alignItems:'center',gap:6}}><I n="team" size={12}/>Team Task Distribution</div>
+            <div style={{fontSize:12,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:'#64748b',marginBottom:12,display:'flex',alignItems:'center',gap:6}}><I n="team" size={12}/>Team Task Distribution</div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:12}}>
               {team.map(m=>{
                 const mt=allTasks.filter(t=>t.assigneeIds?.includes(m.id));
@@ -821,15 +821,15 @@ function App() {
                   <div key={m.id} style={{...card,borderRadius:16,padding:16}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
                       <Avatar name={m.name}/>
-                      <div style={{minWidth:0,flex:1}}><div style={{fontWeight:900,fontSize:11,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{m.name}</div><div style={{fontSize:8,color:'#64748b'}}>{m.role}</div></div>
-                      <span style={{fontSize:10,fontWeight:900,color:pct===100?'#34d399':'#818cf8'}}>{pct}%</span>
+                      <div style={{minWidth:0,flex:1}}><div style={{fontWeight:900,fontSize:14,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{m.name}</div><div style={{fontSize:14,color:'#64748b'}}>{m.role}</div></div>
+                      <span style={{fontSize:13,fontWeight:900,color:pct===100?'#34d399':'#818cf8'}}>{pct}%</span>
                     </div>
                     <div style={{height:6,borderRadius:4,overflow:'hidden',background:dm?'rgba(255,255,255,0.05)':'#e2e8f0',marginBottom:8}}>
                       <div style={{height:'100%',width:`${pct}%`,background:pct===100?'#10b981':'#6366f1',borderRadius:4,transition:'width .7s ease'}}/>
                     </div>
                     <div style={{display:'flex',gap:6,marginBottom:10}}>
-                      <span style={{fontSize:8,fontWeight:900,padding:'2px 8px',borderRadius:20,background:'rgba(16,185,129,0.1)',color:'#34d399'}}>{md.length} done</span>
-                      <span style={{fontSize:8,fontWeight:900,padding:'2px 8px',borderRadius:20,background:'rgba(99,102,241,0.1)',color:'#818cf8'}}>{mt.length-md.length} open</span>
+                      <span style={{fontSize:14,fontWeight:900,padding:'2px 8px',borderRadius:20,background:'rgba(16,185,129,0.1)',color:'#34d399'}}>{md.length} done</span>
+                      <span style={{fontSize:14,fontWeight:900,padding:'2px 8px',borderRadius:20,background:'rgba(99,102,241,0.1)',color:'#818cf8'}}>{mt.length-md.length} open</span>
                     </div>
                     <div style={{height:60}}>
                       <SvgAreaChart data={td} h={60} dataKey="total" dataKey2="done"/>
@@ -851,12 +851,12 @@ function App() {
                 {search&&<button onClick={()=>setSearch('')} style={{background:'none',border:'none',cursor:'pointer',color:'#64748b'}}><I n="x" size={12}/></button>}
               </div>
               <div style={{display:'flex',borderRadius:10,overflow:'hidden',border:dm?'1px solid rgba(255,255,255,0.05)':'1px solid #e2e8f0'}}>
-                {['all','open','done'].map(f=><button key={f} onClick={()=>setFilter(f)} style={{padding:'8px 12px',fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.05em',border:'none',cursor:'pointer',background:filter===f?'#4f46e5':dm?'rgba(255,255,255,0.02)':'#fff',color:filter===f?'#fff':'#64748b',transition:'all .15s'}}>{f}</button>)}
+                {['all','open','done'].map(f=><button key={f} onClick={()=>setFilter(f)} style={{padding:'8px 12px',fontSize:12,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.05em',border:'none',cursor:'pointer',background:filter===f?'#4f46e5':dm?'rgba(255,255,255,0.02)':'#fff',color:filter===f?'#fff':'#64748b',transition:'all .15s'}}>{f}</button>)}
               </div>
             </div>
             <div style={{display:'flex',gap:8}}>
-              <button onClick={openImport} style={{display:'flex',alignItems:'center',gap:6,padding:'8px 12px',borderRadius:10,fontSize:10,fontWeight:900,background:'rgba(99,102,241,0.1)',color:'#818cf8',border:'1px solid rgba(99,102,241,0.2)',cursor:'pointer'}}><I n="sparkles" size={12}/> AI Import</button>
-              <button onClick={()=>{const g={id:`g${Date.now()}_${uid6()}`,name:'New Goal',quarter:1,tasks:[]};addGoal(g);setExpanded(p=>({...p,[g.id]:true}));}} style={{display:'flex',alignItems:'center',gap:6,padding:'8px 12px',borderRadius:10,fontSize:10,fontWeight:900,background:'#4f46e5',color:'#fff',border:'none',cursor:'pointer',boxShadow:'0 4px 12px rgba(79,70,229,0.3)'}}><I n="plus" size={12}/> New Goal</button>
+              <button onClick={openImport} style={{display:'flex',alignItems:'center',gap:6,padding:'8px 12px',borderRadius:10,fontSize:13,fontWeight:900,background:'rgba(99,102,241,0.1)',color:'#818cf8',border:'1px solid rgba(99,102,241,0.2)',cursor:'pointer'}}><I n="sparkles" size={12}/> AI Import</button>
+              <button onClick={()=>{const g={id:`g${Date.now()}_${uid6()}`,name:'New Goal',quarter:1,tasks:[]};addGoal(g);setExpanded(p=>({...p,[g.id]:true}));}} style={{display:'flex',alignItems:'center',gap:6,padding:'8px 12px',borderRadius:10,fontSize:13,fontWeight:900,background:'#4f46e5',color:'#fff',border:'none',cursor:'pointer',boxShadow:'0 4px 12px rgba(79,70,229,0.3)'}}><I n="plus" size={12}/> New Goal</button>
             </div>
           </div>
 
@@ -869,7 +869,7 @@ function App() {
                   <Ring value={p} size={36} stroke={3}/>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontWeight:900,fontSize:13,whiteSpace:'normal',wordBreak:'break-word',lineHeight:1.3}}>{goal.name}</div>
-                    <div style={{fontSize:9,color:'#64748b',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.06em',marginTop:2}}>Target Q{goal.quarter} · {(goal.tasks||[]).length} tasks</div>
+                    <div style={{fontSize:12,color:'#64748b',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.06em',marginTop:2}}>Target Q{goal.quarter} · {(goal.tasks||[]).length} tasks</div>
                   </div>
                   <div style={{display:'flex',gap:4}} onClick={e=>e.stopPropagation()}>
                     <button onClick={e=>{e.stopPropagation();setEditGoalF({name:goal.name,quarter:goal.quarter});setEditGoalM(goal);}} style={{padding:6,borderRadius:8,background:'none',border:'none',cursor:'pointer',color:'#818cf8'}}><I n="pen" size={13}/></button>
@@ -927,7 +927,7 @@ function App() {
                               {/* Text block: takes all remaining width, wraps freely */}
                               <div style={{flex:1,minWidth:0}}>
                                 <div style={{fontSize:13,fontWeight:500,lineHeight:1.4,wordBreak:'break-word',whiteSpace:'pre-wrap',textDecoration:s.completed?'line-through':'none',opacity:s.completed?0.5:1}}>{s.name}</div>
-                                <div style={{fontSize:11,color:'#64748b',fontWeight:600,marginTop:1}}>{MONTHS[(s.month||1)-1]}</div>
+                                <div style={{fontSize:14,color:'#64748b',fontWeight:600,marginTop:1}}>{MONTHS[(s.month||1)-1]}</div>
                               </div>
                               <button onClick={()=>delSub(goal.id,task.id,s.id)} style={{background:'none',border:'none',cursor:'pointer',color:'#f87171',opacity:0.5,padding:'2px',flexShrink:0,marginTop:2}}><I n="x" size={10}/></button>
                             </div>
@@ -935,10 +935,10 @@ function App() {
                         </div>
 
                         {!done&&<div style={{marginTop:8,display:'flex',alignItems:'center',gap:6,padding:'6px 8px',borderRadius:8,border:'1px solid rgba(255,255,255,0.05)',background:'rgba(255,255,255,0.02)'}}>
-                          <input style={{flex:1,background:'none',border:'none',outline:'none',fontSize:9,color:text}} placeholder="Add step…" value={(subInputs[task.id]||{}).name||''}
+                          <input style={{flex:1,background:'none',border:'none',outline:'none',fontSize:12,color:text}} placeholder="Add step…" value={(subInputs[task.id]||{}).name||''}
                             onChange={e=>setSubInputs(p=>({...p,[task.id]:{...(p[task.id]||{}),name:e.target.value}}))}
                             onKeyDown={e=>{if(e.key==='Enter'&&(subInputs[task.id]||{}).name?.trim()){addSub(goal.id,task.id,subInputs[task.id].name.trim(),(subInputs[task.id]).month||task.month);setSubInputs(p=>({...p,[task.id]:{name:'',month:task.month}}));}}}/>
-                          <select style={{background:'none',border:'none',outline:'none',fontSize:8,fontWeight:700,color:'#64748b',cursor:'pointer'}} value={(subInputs[task.id]||{}).month||task.month||1} onChange={e=>setSubInputs(p=>({...p,[task.id]:{...(p[task.id]||{}),month:e.target.value}}))}>
+                          <select style={{background:'none',border:'none',outline:'none',fontSize:14,fontWeight:700,color:'#64748b',cursor:'pointer'}} value={(subInputs[task.id]||{}).month||task.month||1} onChange={e=>setSubInputs(p=>({...p,[task.id]:{...(p[task.id]||{}),month:e.target.value}}))}>
                             {MONTHS.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
                           </select>
                         </div>}
@@ -947,7 +947,7 @@ function App() {
                   })}
                   <button onClick={()=>{const t={id:`tk${Date.now()}_${uid6()}`,name:'New Task',quarter:goal.quarter,month:1,assigneeIds:[],completed:false,subtasks:[]};mutateGoal(goal.id,g=>({...g,tasks:[...(g.tasks||[]),t]}));}} style={{borderRadius:12,border:'2px dashed rgba(255,255,255,0.06)',background:'none',minHeight:120,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:8,cursor:'pointer',color:'#475569',transition:'all .15s'}}>
                     <div style={{width:32,height:32,borderRadius:10,background:'rgba(255,255,255,0.04)',display:'flex',alignItems:'center',justifyContent:'center'}}><I n="plus" size={14}/></div>
-                    <span style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em'}}>New Task</span>
+                    <span style={{fontSize:12,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em'}}>New Task</span>
                   </button>
                 </div>}
               </div>
@@ -960,7 +960,7 @@ function App() {
         {view==='team'&&<div className="fadein" style={{display:'flex',flexDirection:'column',gap:16}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
             <h2 style={{fontSize:15,fontWeight:900,letterSpacing:'-0.02em'}}>Team Members</h2>
-            <button onClick={()=>setAddMemM(true)} style={{display:'flex',alignItems:'center',gap:6,padding:'8px 14px',borderRadius:10,fontSize:10,fontWeight:900,background:'#059669',color:'#fff',border:'none',cursor:'pointer',boxShadow:'0 4px 12px rgba(5,150,105,0.3)'}}><I n="userPlus" size={12}/> Add Member</button>
+            <button onClick={()=>setAddMemM(true)} style={{display:'flex',alignItems:'center',gap:6,padding:'8px 14px',borderRadius:10,fontSize:13,fontWeight:900,background:'#059669',color:'#fff',border:'none',cursor:'pointer',boxShadow:'0 4px 12px rgba(5,150,105,0.3)'}}><I n="userPlus" size={12}/> Add Member</button>
           </div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:16}}>
             {team.map(m=>{
@@ -977,8 +977,8 @@ function App() {
                       <Avatar name={m.name} size="lg"/>
                       <div style={{minWidth:0}}>
                         <div style={{fontWeight:900,fontSize:13,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{m.name}</div>
-                        <div style={{fontSize:9,color:'#64748b',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.06em'}}>{m.role||'Team Member'}</div>
-                        <div style={{fontSize:9,color:'#475569',marginTop:2}}>{priv?(m.email?'●●●@●●●.com':'—'):m.email||'—'}</div>
+                        <div style={{fontSize:12,color:'#64748b',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.06em'}}>{m.role||'Team Member'}</div>
+                        <div style={{fontSize:12,color:'#475569',marginTop:2}}>{priv?(m.email?'●●●@●●●.com':'—'):m.email||'—'}</div>
                       </div>
                     </div>
                     <div style={{display:'flex',gap:4,flexShrink:0}}>
@@ -991,29 +991,29 @@ function App() {
                       {[{l:'Total',v:mt.length,c:'#94a3b8',bg:'rgba(255,255,255,0.04)'},{l:'Done',v:md.length,c:'#34d399',bg:'rgba(16,185,129,0.08)'},{l:'Active',v:ip.length,c:'#818cf8',bg:'rgba(99,102,241,0.08)'}].map(x=>(
                         <div key={x.l} style={{background:x.bg,borderRadius:10,padding:'8px 4px',textAlign:'center'}}>
                           <div style={{fontSize:18,fontWeight:900,color:x.c}}>{x.v}</div>
-                          <div style={{fontSize:8,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.06em'}}>{x.l}</div>
+                          <div style={{fontSize:14,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.06em'}}>{x.l}</div>
                         </div>
                       ))}
                     </div>
                     <div>
-                      <div style={{display:'flex',justifyContent:'space-between',fontSize:9,fontWeight:700,color:'#64748b',marginBottom:4}}><span>Completion</span><span style={{color:pct===100?'#34d399':'#818cf8'}}>{pct}%</span></div>
+                      <div style={{display:'flex',justifyContent:'space-between',fontSize:12,fontWeight:700,color:'#64748b',marginBottom:4}}><span>Completion</span><span style={{color:pct===100?'#34d399':'#818cf8'}}>{pct}%</span></div>
                       <div style={{height:8,borderRadius:4,overflow:'hidden',background:'rgba(255,255,255,0.05)'}}>
                         <div style={{height:'100%',width:`${pct}%`,background:pct===100?'#10b981':'#6366f1',borderRadius:4,transition:'width .7s ease'}}/>
                       </div>
                     </div>
                     {mt.length>0&&<>
-                      <div><div style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',color:'#64748b',marginBottom:8}}>Monthly Workload</div>
+                      <div><div style={{fontSize:12,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',color:'#64748b',marginBottom:8}}>Monthly Workload</div>
                         <div style={{height:80}}>
                           <SvgBarChart data={mmd} h={80}/>
                         </div>
                       </div>
-                      <div><div style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',color:'#64748b',marginBottom:8}}>Quarterly Breakdown</div>
+                      <div><div style={{fontSize:12,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',color:'#64748b',marginBottom:8}}>Quarterly Breakdown</div>
                         <div style={{height:80}}>
                           <SvgBarChart data={qb} h={80}/>
                         </div>
                       </div>
                     </>}
-                    {mt.length===0&&<div style={{textAlign:'center',padding:'12px 0',fontSize:9,fontWeight:700,color:'#475569'}}>No tasks assigned yet</div>}
+                    {mt.length===0&&<div style={{textAlign:'center',padding:'12px 0',fontSize:12,fontWeight:700,color:'#475569'}}>No tasks assigned yet</div>}
                   </div>
                 </div>
               );
@@ -1044,7 +1044,7 @@ function App() {
               <div style={{display:'flex',flexDirection:'column',gap:10}}>
                 {sec.items.map((item,j)=>(
                   <div key={j} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 12px',borderRadius:10,background:dm?'rgba(255,255,255,0.02)':'#f8fafc'}}>
-                    <div><div style={{fontSize:12,fontWeight:700}}>{item.label}</div><div style={{fontSize:9,color:'#64748b',marginTop:2,wordBreak:'break-all'}}>{item.desc}</div></div>
+                    <div><div style={{fontSize:12,fontWeight:700}}>{item.label}</div><div style={{fontSize:12,color:'#64748b',marginTop:2,wordBreak:'break-all'}}>{item.desc}</div></div>
                     {item.toggle&&<button onClick={item.onToggle} style={{width:40,height:20,borderRadius:10,position:'relative',background:item.value?'#4f46e5':'rgba(255,255,255,0.1)',border:'none',cursor:'pointer',transition:'background .15s',flexShrink:0}}>
                       <div style={{width:16,height:16,background:'#fff',borderRadius:'50%',position:'absolute',top:2,left:item.value?22:2,transition:'left .15s',boxShadow:'0 1px 3px rgba(0,0,0,0.3)'}}/>
                     </button>}
@@ -1058,12 +1058,12 @@ function App() {
             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:16}}><I n="alert" size={14} color="#f87171"/><h3 style={{fontSize:13,fontWeight:900,color:'#f87171'}}>Danger Zone</h3></div>
             <div style={{display:'flex',flexDirection:'column',gap:8}}>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 12px',borderRadius:10,background:dm?'rgba(255,255,255,0.03)':'#fff'}}>
-                <div><div style={{fontSize:12,fontWeight:700}}>Sign Out</div><div style={{fontSize:9,color:'#64748b',marginTop:2}}>Sign out of your Google account</div></div>
-                <button onClick={signOut} style={{padding:'6px 12px',borderRadius:8,fontSize:10,fontWeight:900,textTransform:'uppercase',background:'rgba(255,255,255,0.06)',color:'#94a3b8',border:'1px solid rgba(255,255,255,0.08)',cursor:'pointer',marginLeft:12}}>Sign Out</button>
+                <div><div style={{fontSize:12,fontWeight:700}}>Sign Out</div><div style={{fontSize:12,color:'#64748b',marginTop:2}}>Sign out of your Google account</div></div>
+                <button onClick={signOut} style={{padding:'6px 12px',borderRadius:8,fontSize:13,fontWeight:900,textTransform:'uppercase',background:'rgba(255,255,255,0.06)',color:'#94a3b8',border:'1px solid rgba(255,255,255,0.08)',cursor:'pointer',marginLeft:12}}>Sign Out</button>
               </div>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 12px',borderRadius:10,background:dm?'rgba(239,68,68,0.06)':'#fff'}}>
-                <div><div style={{fontSize:12,fontWeight:700}}>Reset All Data</div><div style={{fontSize:9,color:'#64748b',marginTop:2}}>Permanently erase all your goals, tasks & KPIs</div></div>
-                <button onClick={()=>setResetM(true)} style={{padding:'6px 12px',borderRadius:8,fontSize:10,fontWeight:900,textTransform:'uppercase',background:'#ef4444',color:'#fff',border:'none',cursor:'pointer',marginLeft:12}}>Reset</button>
+                <div><div style={{fontSize:12,fontWeight:700}}>Reset All Data</div><div style={{fontSize:12,color:'#64748b',marginTop:2}}>Permanently erase all your goals, tasks & KPIs</div></div>
+                <button onClick={()=>setResetM(true)} style={{padding:'6px 12px',borderRadius:8,fontSize:13,fontWeight:900,textTransform:'uppercase',background:'#ef4444',color:'#fff',border:'none',cursor:'pointer',marginLeft:12}}>Reset</button>
               </div>
             </div>
           </div>
@@ -1075,7 +1075,7 @@ function App() {
       <nav style={{position:'fixed',bottom:16,left:'50%',transform:'translateX(-50%)',zIndex:50}}>
         <div style={{display:'flex',alignItems:'center',gap:4,padding:6,borderRadius:20,background:dm?'rgba(15,23,42,0.95)':'rgba(255,255,255,0.95)',border:dm?'1px solid rgba(255,255,255,0.08)':'1px solid #e2e8f0',boxShadow:'0 8px 32px rgba(0,0,0,0.4)',backdropFilter:'blur(16px)'}}>
           {[{id:'dashboard',icon:'trending',label:'KPIs'},{id:'tasks',icon:'tasks',label:'Tasks'},{id:'team',icon:'team',label:'Team'},{id:'settings',icon:'settings',label:'Settings'}].map(item=>(
-            <button key={item.id} onClick={()=>setView(item.id)} style={{display:'flex',alignItems:'center',gap:view===item.id?8:0,padding:'10px 14px',borderRadius:14,border:'none',cursor:'pointer',background:view===item.id?'#4f46e5':'transparent',color:view===item.id?'#fff':'#64748b',fontWeight:900,fontSize:10,textTransform:'uppercase',letterSpacing:'0.05em',transition:'all .2s',boxShadow:view===item.id?'0 4px 12px rgba(79,70,229,0.4)':'none'}}>
+            <button key={item.id} onClick={()=>setView(item.id)} style={{display:'flex',alignItems:'center',gap:view===item.id?8:0,padding:'10px 14px',borderRadius:14,border:'none',cursor:'pointer',background:view===item.id?'#4f46e5':'transparent',color:view===item.id?'#fff':'#64748b',fontWeight:900,fontSize:13,textTransform:'uppercase',letterSpacing:'0.05em',transition:'all .2s',boxShadow:view===item.id?'0 4px 12px rgba(79,70,229,0.4)':'none'}}>
               <I n={item.icon} size={15} color={view===item.id?'#fff':'#64748b'}/>{view===item.id&&<span>{item.label}</span>}
             </button>
           ))}
@@ -1098,7 +1098,7 @@ function App() {
         <MHead title="Edit KPI" onClose={()=>setEditKpiM(null)}/>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
           {[['Category','category'],['KPI Name','name'],['Owner','owner'],['Baseline','baseline'],['Goal','goal'],['Unit','unit']].map(([l,k])=><Field key={k} label={l} value={editKpiF[k]} onChange={v=>setEditKpiF(p=>({...p,[k]:v}))}/>)}
-          <div><label style={{fontSize:9,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.08em',display:'block',marginBottom:6}}>Direction</label><div style={{display:'flex',gap:8}}>{['higher','lower'].map(t=><button key={t} onClick={()=>setEditKpiF(p=>({...p,type:t}))} style={{flex:1,padding:'8px',borderRadius:10,fontSize:10,fontWeight:900,border:'none',cursor:'pointer',background:editKpiF.type===t?'#4f46e5':'rgba(255,255,255,0.05)',color:editKpiF.type===t?'#fff':'#94a3b8'}}>{t==='higher'?'↑ Higher':'↓ Lower'}</button>)}</div></div>
+          <div><label style={{fontSize:12,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.08em',display:'block',marginBottom:6}}>Direction</label><div style={{display:'flex',gap:8}}>{['higher','lower'].map(t=><button key={t} onClick={()=>setEditKpiF(p=>({...p,type:t}))} style={{flex:1,padding:'8px',borderRadius:10,fontSize:13,fontWeight:900,border:'none',cursor:'pointer',background:editKpiF.type===t?'#4f46e5':'rgba(255,255,255,0.05)',color:editKpiF.type===t?'#fff':'#94a3b8'}}>{t==='higher'?'↑ Higher':'↓ Lower'}</button>)}</div></div>
           <div style={{display:'flex',gap:8,marginTop:4}}><BtnGhost onClick={()=>setEditKpiM(null)}/><Btn onClick={()=>{mutateKpi(editKpiM.id,k=>({...k,...editKpiF}));setEditKpiM(null);}}>Save</Btn></div>
         </div>
       </Modal>}
@@ -1107,7 +1107,7 @@ function App() {
         <MHead title="New KPI" icon="plus" onClose={()=>setAddKpiM(false)}/>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
           {[['Category','category'],['KPI Name','name'],['Owner','owner'],['Baseline','baseline'],['Goal','goal'],['Unit','unit']].map(([l,k])=><Field key={k} label={l} value={addKpiF[k]} onChange={v=>setAddKpiF(p=>({...p,[k]:v}))}/>)}
-          <div><label style={{fontSize:9,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.08em',display:'block',marginBottom:6}}>Direction</label><div style={{display:'flex',gap:8}}>{['higher','lower'].map(t=><button key={t} onClick={()=>setAddKpiF(p=>({...p,type:t}))} style={{flex:1,padding:'8px',borderRadius:10,fontSize:10,fontWeight:900,border:'none',cursor:'pointer',background:addKpiF.type===t?'#4f46e5':'rgba(255,255,255,0.05)',color:addKpiF.type===t?'#fff':'#94a3b8'}}>{t==='higher'?'↑ Higher':'↓ Lower'}</button>)}</div></div>
+          <div><label style={{fontSize:12,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.08em',display:'block',marginBottom:6}}>Direction</label><div style={{display:'flex',gap:8}}>{['higher','lower'].map(t=><button key={t} onClick={()=>setAddKpiF(p=>({...p,type:t}))} style={{flex:1,padding:'8px',borderRadius:10,fontSize:13,fontWeight:900,border:'none',cursor:'pointer',background:addKpiF.type===t?'#4f46e5':'rgba(255,255,255,0.05)',color:addKpiF.type===t?'#fff':'#94a3b8'}}>{t==='higher'?'↑ Higher':'↓ Lower'}</button>)}</div></div>
           <div style={{display:'flex',gap:8,marginTop:4}}><BtnGhost onClick={()=>setAddKpiM(false)}/><Btn onClick={()=>{addKpi({id:`k${Date.now()}_${uid6()}`,...addKpiF,targets:{},actuals:{},details:{}});setAddKpiM(false);setAddKpiF({category:'',name:'',owner:'',baseline:'',goal:'',unit:'%',type:'higher'});}} disabled={!addKpiF.name.trim()} color="emerald">Create</Btn></div>
         </div>
       </Modal>}
@@ -1116,7 +1116,7 @@ function App() {
         <MHead title="Edit Goal" onClose={()=>setEditGoalM(null)}/>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
           <Field label="Goal Name" value={editGoalF.name} onChange={v=>setEditGoalF(p=>({...p,name:v}))} onEnter={saveGoalEdit}/>
-          <div><label style={{fontSize:9,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.08em',display:'block',marginBottom:6}}>Target Quarter</label><div style={{display:'flex',gap:8}}>{[1,2,3,4].map(q=><button key={q} onClick={()=>setEditGoalF(p=>({...p,quarter:q}))} style={{flex:1,padding:'8px',borderRadius:10,fontSize:11,fontWeight:900,border:'none',cursor:'pointer',background:editGoalF.quarter===q?'#4f46e5':'rgba(255,255,255,0.05)',color:editGoalF.quarter===q?'#fff':'#94a3b8'}}>Q{q}</button>)}</div></div>
+          <div><label style={{fontSize:12,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.08em',display:'block',marginBottom:6}}>Target Quarter</label><div style={{display:'flex',gap:8}}>{[1,2,3,4].map(q=><button key={q} onClick={()=>setEditGoalF(p=>({...p,quarter:q}))} style={{flex:1,padding:'8px',borderRadius:10,fontSize:14,fontWeight:900,border:'none',cursor:'pointer',background:editGoalF.quarter===q?'#4f46e5':'rgba(255,255,255,0.05)',color:editGoalF.quarter===q?'#fff':'#94a3b8'}}>Q{q}</button>)}</div></div>
           <div style={{display:'flex',gap:8,marginTop:4}}><BtnGhost onClick={()=>setEditGoalM(null)}/><Btn onClick={saveGoalEdit} disabled={!editGoalF.name.trim()}>Save</Btn></div>
         </div>
       </Modal>}
@@ -1126,16 +1126,16 @@ function App() {
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
           <Field label="Task Name" value={editTaskF.name} onChange={v=>setEditTaskF(p=>({...p,name:v}))} onEnter={saveTaskEdit}/>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-            <div><label style={{fontSize:9,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.08em',display:'block',marginBottom:6}}>Quarter</label><div style={{display:'flex',gap:4}}>{[1,2,3,4].map(q=><button key={q} onClick={()=>setEditTaskF(p=>({...p,quarter:q}))} style={{flex:1,padding:'6px 2px',borderRadius:8,fontSize:10,fontWeight:900,border:'none',cursor:'pointer',background:editTaskF.quarter===q?'#4f46e5':'rgba(255,255,255,0.05)',color:editTaskF.quarter===q?'#fff':'#94a3b8'}}>Q{q}</button>)}</div></div>
-            <div><label style={{fontSize:9,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.08em',display:'block',marginBottom:6}}>Month</label>
+            <div><label style={{fontSize:12,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.08em',display:'block',marginBottom:6}}>Quarter</label><div style={{display:'flex',gap:4}}>{[1,2,3,4].map(q=><button key={q} onClick={()=>setEditTaskF(p=>({...p,quarter:q}))} style={{flex:1,padding:'6px 2px',borderRadius:8,fontSize:13,fontWeight:900,border:'none',cursor:'pointer',background:editTaskF.quarter===q?'#4f46e5':'rgba(255,255,255,0.05)',color:editTaskF.quarter===q?'#fff':'#94a3b8'}}>Q{q}</button>)}</div></div>
+            <div><label style={{fontSize:12,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.08em',display:'block',marginBottom:6}}>Month</label>
               <select value={editTaskF.month} onChange={e=>setEditTaskF(p=>({...p,month:+e.target.value}))} style={{width:'100%',padding:'8px 10px',borderRadius:10,fontSize:12,fontWeight:700,background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',color:'#e2e8f0',cursor:'pointer'}}>
                 {MONTHS.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
               </select>
             </div>
           </div>
-          <div><label style={{fontSize:9,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.08em',display:'block',marginBottom:8}}>Assignees</label>
+          <div><label style={{fontSize:12,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.08em',display:'block',marginBottom:8}}>Assignees</label>
             <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
-              {team.map(m=>{const sel=(editTaskF.assigneeIds||[]).includes(m.id);return(<button key={m.id} onClick={()=>setEditTaskF(p=>({...p,assigneeIds:sel?p.assigneeIds.filter(id=>id!==m.id):[...(p.assigneeIds||[]),m.id]}))} style={{display:'flex',alignItems:'center',gap:6,padding:'6px 10px',borderRadius:10,fontSize:10,fontWeight:700,border:'none',cursor:'pointer',background:sel?'#4f46e5':'rgba(255,255,255,0.05)',color:sel?'#fff':'#94a3b8'}}><Avatar name={m.name}/>{m.name}</button>);})}
+              {team.map(m=>{const sel=(editTaskF.assigneeIds||[]).includes(m.id);return(<button key={m.id} onClick={()=>setEditTaskF(p=>({...p,assigneeIds:sel?p.assigneeIds.filter(id=>id!==m.id):[...(p.assigneeIds||[]),m.id]}))} style={{display:'flex',alignItems:'center',gap:6,padding:'6px 10px',borderRadius:10,fontSize:13,fontWeight:700,border:'none',cursor:'pointer',background:sel?'#4f46e5':'rgba(255,255,255,0.05)',color:sel?'#fff':'#94a3b8'}}><Avatar name={m.name}/>{m.name}</button>);})}
             </div>
           </div>
           <div style={{display:'flex',gap:8,marginTop:4}}><BtnGhost onClick={()=>setEditTaskM(null)}/><Btn onClick={saveTaskEdit} disabled={!editTaskF.name.trim()}>Save</Btn></div>
@@ -1146,7 +1146,7 @@ function App() {
         <div style={{textAlign:'center',marginBottom:20}}>
           <div style={{width:48,height:48,borderRadius:16,background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.2)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px'}}><I n="alert" size={22} color="#f87171"/></div>
           <div style={{fontWeight:900,fontSize:14,marginBottom:6}}>Reset All Data?</div>
-          <p style={{fontSize:10,color:'#64748b',lineHeight:1.6}}>This will permanently delete all goals, tasks and KPIs. Cannot be undone.</p>
+          <p style={{fontSize:13,color:'#64748b',lineHeight:1.6}}>This will permanently delete all goals, tasks and KPIs. Cannot be undone.</p>
         </div>
         <div style={{display:'flex',gap:8}}><BtnGhost onClick={()=>setResetM(false)}/><Btn onClick={()=>{resetAll();setResetM(false);}} color="red">Yes, Reset Everything</Btn></div>
       </Modal>}
@@ -1178,16 +1178,16 @@ function App() {
           {pasteImg&&<div style={{position:'relative',marginBottom:10,borderRadius:12,overflow:'hidden',border:'1px solid rgba(99,102,241,0.3)',background:'rgba(99,102,241,0.05)'}}>
             <img src={pasteImg.dataUrl} alt="Attached" style={{width:'100%',maxHeight:200,objectFit:'contain',display:'block',borderRadius:12}}/>
             <button onClick={()=>{setPasteImg(null);setFileName('');setImportTxt('');window.__pif=null;}} style={{position:'absolute',top:6,right:6,width:22,height:22,borderRadius:'50%',background:'rgba(0,0,0,0.6)',border:'none',cursor:'pointer',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center'}}><I n="x" size={11}/></button>
-            <div style={{padding:'6px 10px',fontSize:11,fontWeight:600,color:'#818cf8'}}>✓ Image attached — ready to analyze</div>
+            <div style={{padding:'6px 10px',fontSize:14,fontWeight:600,color:'#818cf8'}}>✓ Image attached — ready to analyze</div>
           </div>}
 
           {/* Drop zone / file pickers */}
           {!pasteImg&&<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:10}}>
-            <label style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'10px',borderRadius:10,border:`2px dashed ${fileName&&!fileName.match(/\.(png|jpg|jpeg|gif|webp|bmp)$/i)?'rgba(99,102,241,0.4)':'rgba(255,255,255,0.08)'}`,cursor:'pointer',color:fileName&&!fileName.match(/\.(png|jpg|jpeg|gif|webp|bmp)$/i)?'#818cf8':'#64748b',fontSize:11,fontWeight:700,textAlign:'center'}}>
+            <label style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'10px',borderRadius:10,border:`2px dashed ${fileName&&!fileName.match(/\.(png|jpg|jpeg|gif|webp|bmp)$/i)?'rgba(99,102,241,0.4)':'rgba(255,255,255,0.08)'}`,cursor:'pointer',color:fileName&&!fileName.match(/\.(png|jpg|jpeg|gif|webp|bmp)$/i)?'#818cf8':'#64748b',fontSize:14,fontWeight:700,textAlign:'center'}}>
               <I n="upload" size={13}/><span>{fileName&&!fileName.match(/\.(png|jpg|jpeg|gif|webp|bmp)$/i)?`✓ ${fileName}`:'File / CSV / Excel'}</span>
               <input type="file" style={{display:'none'}} accept=".xlsx,.xls,.csv,.txt,.pdf" onChange={onFile}/>
             </label>
-            <label style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'10px',borderRadius:10,border:`2px dashed ${fileName&&fileName.match(/\.(png|jpg|jpeg|gif|webp|bmp)$/i)?'rgba(99,102,241,0.4)':'rgba(255,255,255,0.08)'}`,cursor:'pointer',color:fileName&&fileName.match(/\.(png|jpg|jpeg|gif|webp|bmp)$/i)?'#818cf8':'#64748b',fontSize:11,fontWeight:700,textAlign:'center'}}>
+            <label style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'10px',borderRadius:10,border:`2px dashed ${fileName&&fileName.match(/\.(png|jpg|jpeg|gif|webp|bmp)$/i)?'rgba(99,102,241,0.4)':'rgba(255,255,255,0.08)'}`,cursor:'pointer',color:fileName&&fileName.match(/\.(png|jpg|jpeg|gif|webp|bmp)$/i)?'#818cf8':'#64748b',fontSize:14,fontWeight:700,textAlign:'center'}}>
               <I n="image" size={13}/><span>{fileName&&fileName.match(/\.(png|jpg|jpeg|gif|webp|bmp)$/i)?`✓ ${fileName}`:'Upload Image'}</span>
               <input type="file" style={{display:'none'}} accept="image/png,image/jpeg,image/gif,image/webp,image/bmp,image/*" onChange={onFile}/>
             </label>
@@ -1195,58 +1195,58 @@ function App() {
 
           {/* Text area — also handles Ctrl+V image paste */}
           {!pasteImg&&<textarea
-            style={{width:'100%',height:110,borderRadius:10,border:'1px solid rgba(255,255,255,0.08)',padding:'10px 12px',fontSize:11,outline:'none',resize:'none',fontWeight:500,background:'rgba(255,255,255,0.04)',color:'#e2e8f0'}}
+            style={{width:'100%',height:110,borderRadius:10,border:'1px solid rgba(255,255,255,0.08)',padding:'10px 12px',fontSize:14,outline:'none',resize:'none',fontWeight:500,background:'rgba(255,255,255,0.04)',color:'#e2e8f0'}}
             placeholder={"Paste text (goals, tasks, KPIs…) or paste a screenshot with Ctrl+V / ⌘V"}
             value={importTxt}
             onChange={e=>setImportTxt(e.target.value)}
             onPaste={onPaste}
           />}
 
-          {importErr&&<div style={{fontSize:11,color:'#f87171',background:'rgba(239,68,68,0.1)',borderRadius:8,padding:'6px 10px',marginTop:8,textAlign:'center'}}>{importErr}</div>}
+          {importErr&&<div style={{fontSize:14,color:'#f87171',background:'rgba(239,68,68,0.1)',borderRadius:8,padding:'6px 10px',marginTop:8,textAlign:'center'}}>{importErr}</div>}
           <div style={{display:'flex',gap:8,marginTop:12}}><BtnGhost onClick={()=>setImportM(false)}/><Btn onClick={analyze} disabled={!importTxt.trim()&&!window.__pif}>Analyze Data</Btn></div>
         </>}
 
         {importStep==='analyzing'&&<div style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'40px 0',gap:16}}>
           <div style={{position:'relative',width:56,height:56}}><div style={{position:'absolute',inset:0,borderRadius:'50%',border:'4px solid rgba(99,102,241,0.2)'}}/><div style={{position:'absolute',inset:0,borderRadius:'50%',border:'4px solid transparent',borderTopColor:'#6366f1'}} className="spin"/><div style={{position:'absolute',inset:8,borderRadius:'50%',background:'rgba(99,102,241,0.1)',display:'flex',alignItems:'center',justifyContent:'center'}}><I n="brain" size={16} color="#818cf8"/></div></div>
-          <div style={{textAlign:'center'}}><div style={{fontWeight:900,fontSize:13,marginBottom:4}}>Analysing Data…</div><div style={{fontSize:10,color:'#64748b'}}>Extracting goals, tasks & KPIs with AI</div></div>
+          <div style={{textAlign:'center'}}><div style={{fontWeight:900,fontSize:13,marginBottom:4}}>Analysing Data…</div><div style={{fontSize:13,color:'#64748b'}}>Extracting goals, tasks & KPIs with AI</div></div>
         </div>}
 
         {importStep==='preview'&&importPrev&&<>
-          <div style={{borderRadius:10,border:'1px solid rgba(255,255,255,0.05)',maxHeight:220,overflowY:'auto',marginBottom:10,fontSize:10}}>
+          <div style={{borderRadius:10,border:'1px solid rgba(255,255,255,0.05)',maxHeight:220,overflowY:'auto',marginBottom:10,fontSize:13}}>
             {importPrev.goals?.length>0&&<div style={{padding:12}}>
-              <div style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',color:'#818cf8',marginBottom:8}}>{importPrev.goals.length} Goal{importPrev.goals.length!==1?'s':''} · {importPrev.goals.flatMap(g=>g.tasks||[]).length} Tasks</div>
+              <div style={{fontSize:12,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',color:'#818cf8',marginBottom:8}}>{importPrev.goals.length} Goal{importPrev.goals.length!==1?'s':''} · {importPrev.goals.flatMap(g=>g.tasks||[]).length} Tasks</div>
               {importPrev.goals.map((g,gi)=><div key={gi} style={{marginBottom:10}}>
                 <div style={{display:'flex',alignItems:'center',gap:6,padding:'6px 8px',borderRadius:8,background:'rgba(99,102,241,0.08)',marginBottom:6}}>
                   <I n="target" size={9} color="#818cf8"/>
-                  <input style={{flex:1,background:'none',border:'none',outline:'none',fontWeight:900,color:'#818cf8',fontSize:10,minWidth:0}} value={g.name} onChange={e=>{const u=JSON.parse(JSON.stringify(importPrev));u.goals[gi].name=e.target.value;setImportPrev(u);}}/>
-                  <select value={g.quarter||1} onChange={e=>{const u=JSON.parse(JSON.stringify(importPrev));u.goals[gi].quarter=+e.target.value;setImportPrev(u);}} style={{background:'none',border:'none',outline:'none',fontSize:8,color:'#818cf8',fontWeight:900,cursor:'pointer',width:28}}>{[1,2,3,4].map(q=><option key={q} value={q}>Q{q}</option>)}</select>
+                  <input style={{flex:1,background:'none',border:'none',outline:'none',fontWeight:900,color:'#818cf8',fontSize:13,minWidth:0}} value={g.name} onChange={e=>{const u=JSON.parse(JSON.stringify(importPrev));u.goals[gi].name=e.target.value;setImportPrev(u);}}/>
+                  <select value={g.quarter||1} onChange={e=>{const u=JSON.parse(JSON.stringify(importPrev));u.goals[gi].quarter=+e.target.value;setImportPrev(u);}} style={{background:'none',border:'none',outline:'none',fontSize:14,color:'#818cf8',fontWeight:900,cursor:'pointer',width:28}}>{[1,2,3,4].map(q=><option key={q} value={q}>Q{q}</option>)}</select>
                   <button onClick={()=>{const u=JSON.parse(JSON.stringify(importPrev));u.goals.splice(gi,1);setImportPrev(u);}} style={{background:'none',border:'none',cursor:'pointer',color:'#f87171'}}><I n="x" size={9}/></button>
                 </div>
                 {(g.tasks||[]).map((t,ti)=><div key={ti} style={{display:'flex',alignItems:'center',gap:6,padding:'4px 8px 4px 20px'}}>
                   <I n="chevRight" size={8} color="#475569"/>
-                  <input style={{flex:1,background:'none',border:'none',outline:'none',fontSize:10,fontWeight:500,color:'#94a3b8',minWidth:0}} value={t.name} onChange={e=>{const u=JSON.parse(JSON.stringify(importPrev));u.goals[gi].tasks[ti].name=e.target.value;setImportPrev(u);}}/>
-                  <span style={{fontSize:8,color:'#475569',flexShrink:0}}>{MONTHS[(t.month||1)-1]}</span>
+                  <input style={{flex:1,background:'none',border:'none',outline:'none',fontSize:13,fontWeight:500,color:'#94a3b8',minWidth:0}} value={t.name} onChange={e=>{const u=JSON.parse(JSON.stringify(importPrev));u.goals[gi].tasks[ti].name=e.target.value;setImportPrev(u);}}/>
+                  <span style={{fontSize:14,color:'#475569',flexShrink:0}}>{MONTHS[(t.month||1)-1]}</span>
                   <button onClick={()=>{const u=JSON.parse(JSON.stringify(importPrev));u.goals[gi].tasks.splice(ti,1);setImportPrev(u);}} style={{background:'none',border:'none',cursor:'pointer',color:'#f87171',opacity:0.5}}><I n="x" size={8}/></button>
                 </div>)}
               </div>)}
             </div>}
             {importPrev.kpis?.length>0&&<div style={{padding:12,borderTop:'1px solid rgba(255,255,255,0.05)'}}>
-              <div style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',color:'#60a5fa',marginBottom:8}}>{importPrev.kpis.length} KPI{importPrev.kpis.length!==1?'s':''}</div>
+              <div style={{fontSize:12,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',color:'#60a5fa',marginBottom:8}}>{importPrev.kpis.length} KPI{importPrev.kpis.length!==1?'s':''}</div>
               {importPrev.kpis.map((k,ki)=><div key={ki} style={{display:'flex',alignItems:'center',gap:6,padding:'4px 8px'}}>
                 <I n="barChart" size={8} color="#60a5fa"/>
-                <input style={{flex:1,background:'none',border:'none',outline:'none',fontSize:10,fontWeight:500,color:'#94a3b8',minWidth:0}} value={k.name} onChange={e=>{const u=JSON.parse(JSON.stringify(importPrev));u.kpis[ki].name=e.target.value;setImportPrev(u);}}/>
-                <span style={{fontSize:8,color:'#475569',flexShrink:0}}>{k.unit||'%'} · {k.type==='lower'?'↓':'↑'}</span>
+                <input style={{flex:1,background:'none',border:'none',outline:'none',fontSize:13,fontWeight:500,color:'#94a3b8',minWidth:0}} value={k.name} onChange={e=>{const u=JSON.parse(JSON.stringify(importPrev));u.kpis[ki].name=e.target.value;setImportPrev(u);}}/>
+                <span style={{fontSize:14,color:'#475569',flexShrink:0}}>{k.unit||'%'} · {k.type==='lower'?'↓':'↑'}</span>
                 <button onClick={()=>{const u=JSON.parse(JSON.stringify(importPrev));u.kpis.splice(ki,1);setImportPrev(u);}} style={{background:'none',border:'none',cursor:'pointer',color:'#f87171',opacity:0.5}}><I n="x" size={8}/></button>
               </div>)}
             </div>}
           </div>
-          <p style={{fontSize:9,color:'#64748b',textAlign:'center',marginBottom:10}}>✏️ Click any name to edit before importing</p>
+          <p style={{fontSize:12,color:'#64748b',textAlign:'center',marginBottom:10}}>✏️ Click any name to edit before importing</p>
           <div style={{display:'flex',gap:8}}><BtnGhost onClick={()=>{setImportStep('input');setImportPrev(null);}}/><Btn onClick={execImport} color="emerald">Import All ✓</Btn></div>
         </>}
 
         {importStep==='importing'&&<div style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'40px 0',gap:16}}>
           <div style={{position:'relative',width:56,height:56}}><div style={{position:'absolute',inset:0,borderRadius:'50%',border:'4px solid rgba(16,185,129,0.2)'}}/><div style={{position:'absolute',inset:0,borderRadius:'50%',border:'4px solid transparent',borderTopColor:'#10b981'}} className="spin"/></div>
-          <div style={{textAlign:'center'}}><div style={{fontWeight:900,fontSize:13,marginBottom:4}}>Importing…</div><div style={{fontSize:10,color:'#64748b'}}>Saving to Supabase</div></div>
+          <div style={{textAlign:'center'}}><div style={{fontWeight:900,fontSize:13,marginBottom:4}}>Importing…</div><div style={{fontSize:13,color:'#64748b'}}>Saving to Supabase</div></div>
         </div>}
       </Modal>}
 
@@ -1264,8 +1264,8 @@ class ErrorBoundary extends React.Component {
         <div style={{maxWidth:500,width:'100%',background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.3)',borderRadius:16,padding:28}}>
           <div style={{fontSize:28,marginBottom:12}}>⚠️</div>
           <div style={{fontSize:16,fontWeight:900,color:'#f87171',marginBottom:8}}>Something went wrong</div>
-          <div style={{fontSize:11,color:'#94a3b8',lineHeight:1.8,wordBreak:'break-all',whiteSpace:'pre-wrap',background:'rgba(0,0,0,0.3)',borderRadius:8,padding:12,marginBottom:12}}>{this.state.err.message}</div>
-          <div style={{fontSize:11,color:'#64748b',lineHeight:1.7}}>
+          <div style={{fontSize:14,color:'#94a3b8',lineHeight:1.8,wordBreak:'break-all',whiteSpace:'pre-wrap',background:'rgba(0,0,0,0.3)',borderRadius:8,padding:12,marginBottom:12}}>{this.state.err.message}</div>
+          <div style={{fontSize:14,color:'#64748b',lineHeight:1.7}}>
             <b style={{color:'#94a3b8'}}>Common fixes:</b><br/>
             1. Make sure SUPABASE_URL and SUPABASE_ANON are filled in correctly<br/>
             2. Make sure you ran the SQL to create the user_data table<br/>
