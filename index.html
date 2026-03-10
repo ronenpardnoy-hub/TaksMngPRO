@@ -458,7 +458,6 @@ function App() {
   const [editGoalF,setEditGoalF]=useState({name:'',quarter:1});
   const [editTaskM,setEditTaskM]=useState(null);
   const [editTaskF,setEditTaskF]=useState({name:'',quarter:1,month:1,assigneeIds:[]});
-  const [viewTaskM,setViewTaskM]=useState(null); // {goal, task}
   const [resetM,setResetM]=useState(false);
 
   // Team
@@ -831,11 +830,11 @@ function App() {
                   {(goal.tasks||[]).map(task=>{
                     const tp=getTaskProgress(task),done=task.completed||(task.subtasks?.length>0&&tp===100);
                     return (
-                      <div key={task.id} onClick={()=>setViewTaskM({goal,task})} style={{width:'100%',boxSizing:'border-box',borderRadius:12,border:done?'1px solid rgba(16,185,129,0.2)':'1px solid rgba(255,255,255,0.05)',background:done?'rgba(16,185,129,0.04)':'rgba(255,255,255,0.02)',padding:14,opacity:done?0.75:1,transition:'all .2s',cursor:'pointer'}}>
+                      <div key={task.id} style={{width:'100%',boxSizing:'border-box',borderRadius:12,border:done?'1px solid rgba(16,185,129,0.2)':'1px solid rgba(255,255,255,0.05)',background:done?'rgba(16,185,129,0.04)':'rgba(255,255,255,0.02)',padding:14,opacity:done?0.75:1,transition:'all .2s'}}>
 
                         {/* Task header: checkbox | name+meta (fills space) | avatars+actions */}
                         <div style={{display:'flex',alignItems:'flex-start',gap:10,marginBottom:10}}>
-                          <button onClick={e=>{e.stopPropagation();toggleTask(goal.id,task.id);}} style={{width:20,height:20,borderRadius:'50%',border:done?'2px solid #10b981':'2px solid #475569',background:done?'#10b981':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,cursor:'pointer',marginTop:2,transition:'all .15s'}}>
+                          <button onClick={()=>toggleTask(goal.id,task.id)} style={{width:20,height:20,borderRadius:'50%',border:done?'2px solid #10b981':'2px solid #475569',background:done?'#10b981':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,cursor:'pointer',marginTop:2,transition:'all .15s'}}>
                             {done&&<I n="check" size={10} color="#fff"/>}
                           </button>
                           {/* Name takes all available width — no overflow, no clamp */}
@@ -848,8 +847,8 @@ function App() {
                           </div>
                           <div style={{display:'flex',alignItems:'center',gap:2,flexShrink:0}}>
                             {(task.assigneeIds||[]).slice(0,3).map(aid=>{const mem=team.find(m=>m.id===aid);return mem?<Avatar key={aid} name={mem.name}/>:null;})}
-                            <button onClick={e=>{e.stopPropagation();setEditTaskF({name:task.name,quarter:task.quarter,month:task.month,assigneeIds:task.assigneeIds||[]});setEditTaskM({gid:goal.id,task});}} style={{padding:4,background:'none',border:'none',cursor:'pointer',color:'#818cf8'}}><I n="pen" size={11}/></button>
-                            <button onClick={e=>{e.stopPropagation();mutateGoal(goal.id,g=>({...g,tasks:(g.tasks||[]).filter(t=>t.id!==task.id)}));}} style={{padding:4,background:'none',border:'none',cursor:'pointer',color:'#f87171'}}><I n="trash" size={11}/></button>
+                            <button onClick={()=>{setEditTaskF({name:task.name,quarter:task.quarter,month:task.month,assigneeIds:task.assigneeIds||[]});setEditTaskM({gid:goal.id,task});}} style={{padding:4,background:'none',border:'none',cursor:'pointer',color:'#818cf8'}}><I n="pen" size={11}/></button>
+                            <button onClick={()=>mutateGoal(goal.id,g=>({...g,tasks:(g.tasks||[]).filter(t=>t.id!==task.id)}))} style={{padding:4,background:'none',border:'none',cursor:'pointer',color:'#f87171'}}><I n="trash" size={11}/></button>
                           </div>
                         </div>
 
@@ -1070,80 +1069,6 @@ function App() {
           <div style={{display:'flex',gap:8,marginTop:4}}><BtnGhost onClick={()=>setEditGoalM(null)}/><Btn onClick={saveGoalEdit} disabled={!editGoalF.name.trim()}>Save</Btn></div>
         </div>
       </Modal>}
-
-      {viewTaskM&&(()=>{
-        const {goal:vGoal, task:vTask}=viewTaskM;
-        const tp=getTaskProgress(vTask);
-        const done=vTask.completed||(vTask.subtasks?.length>0&&tp===100);
-        const assignees=(vTask.assigneeIds||[]).map(id=>team.find(m=>m.id===id)).filter(Boolean);
-        return (
-          <div style={{position:'fixed',inset:0,zIndex:60,display:'flex',alignItems:'center',justifyContent:'center',padding:16,background:'rgba(0,0,0,0.8)',backdropFilter:'blur(10px)'}} onClick={()=>setViewTaskM(null)}>
-            <div style={{width:'100%',maxWidth:520,maxHeight:'85vh',display:'flex',flexDirection:'column',borderRadius:20,background:'#0f172a',border:'1px solid rgba(255,255,255,0.1)',boxShadow:'0 25px 60px rgba(0,0,0,0.6)',overflow:'hidden'}} className="fadein" onClick={e=>e.stopPropagation()}>
-
-              {/* Header */}
-              <div style={{padding:'18px 20px 14px',borderBottom:'1px solid rgba(255,255,255,0.07)',background:'rgba(255,255,255,0.02)'}}>
-                <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:12}}>
-                  <div style={{display:'flex',alignItems:'flex-start',gap:12,flex:1,minWidth:0}}>
-                    <button onClick={e=>{e.stopPropagation();toggleTask(vGoal.id,vTask.id);setViewTaskM(p=>({...p,task:{...p.task,completed:!p.task.completed}}));}} style={{width:24,height:24,borderRadius:'50%',border:done?'2px solid #10b981':'2px solid #475569',background:done?'#10b981':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,cursor:'pointer',marginTop:3,transition:'all .15s'}}>
-                      {done&&<I n="check" size={11} color="#fff"/>}
-                    </button>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontSize:17,fontWeight:800,lineHeight:1.4,wordBreak:'break-word',color:'#f1f5f9',textDecoration:done?'line-through':'none',opacity:done?0.6:1}}>{vTask.name}</div>
-                      <div style={{fontSize:12,color:'#64748b',marginTop:4}}>{vGoal.name}</div>
-                    </div>
-                  </div>
-                  <button onClick={()=>setViewTaskM(null)} style={{padding:6,borderRadius:8,background:'none',border:'none',cursor:'pointer',color:'#64748b',flexShrink:0}}><I n="x" size={16}/></button>
-                </div>
-
-                {/* Meta row */}
-                <div style={{display:'flex',alignItems:'center',gap:8,marginTop:12,flexWrap:'wrap'}}>
-                  <span style={{fontSize:12,fontWeight:700,padding:'3px 10px',borderRadius:6,background:'rgba(99,102,241,0.15)',color:'#818cf8'}}>Q{vTask.quarter}</span>
-                  <span style={{fontSize:12,fontWeight:700,color:'#64748b'}}>→ {MONTHS[(vTask.month||1)-1]}</span>
-                  {assignees.length>0&&<div style={{display:'flex',alignItems:'center',gap:4,marginLeft:4}}>
-                    {assignees.map(m=><div key={m.id} style={{display:'flex',alignItems:'center',gap:4,padding:'2px 8px',borderRadius:20,background:'rgba(255,255,255,0.05)',fontSize:11,fontWeight:600,color:'#94a3b8'}}><Avatar name={m.name}/>{m.name}</div>)}
-                  </div>}
-                  <button onClick={e=>{e.stopPropagation();setViewTaskM(null);setEditTaskF({name:vTask.name,quarter:vTask.quarter,month:vTask.month,assigneeIds:vTask.assigneeIds||[]});setEditTaskM({gid:vGoal.id,task:vTask});}} style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:4,padding:'4px 10px',borderRadius:8,background:'rgba(99,102,241,0.1)',color:'#818cf8',border:'1px solid rgba(99,102,241,0.2)',fontSize:12,fontWeight:700,cursor:'pointer'}}><I n="pen" size={11}/> Edit</button>
-                </div>
-              </div>
-
-              {/* Progress bar (if subtasks) */}
-              {vTask.subtasks?.length>0&&<div style={{padding:'12px 20px 0',background:'rgba(255,255,255,0.01)'}}>
-                <div style={{display:'flex',justifyContent:'space-between',fontSize:12,fontWeight:700,marginBottom:6}}>
-                  <span style={{color:'#64748b'}}>{vTask.subtasks.filter(s=>s.completed).length} / {vTask.subtasks.length} steps complete</span>
-                  <span style={{color:tp===100?'#34d399':'#818cf8'}}>{tp}%</span>
-                </div>
-                <div style={{height:6,borderRadius:4,background:'rgba(255,255,255,0.07)',overflow:'hidden'}}>
-                  <div style={{height:'100%',width:`${tp}%`,background:tp===100?'#10b981':'#6366f1',borderRadius:4,transition:'width .6s ease'}}/>
-                </div>
-              </div>}
-
-              {/* Subtask list — scrollable */}
-              <div style={{flex:1,overflowY:'auto',padding:'12px 20px 20px'}}>
-                {vTask.subtasks?.length>0
-                  ? <div style={{display:'flex',flexDirection:'column',gap:2}}>
-                      {vTask.subtasks.map(s=>(
-                        <div key={s.id} style={{display:'flex',alignItems:'flex-start',gap:10,padding:'10px 12px',borderRadius:10,background:s.completed?'rgba(16,185,129,0.04)':'rgba(255,255,255,0.02)',border:'1px solid',borderColor:s.completed?'rgba(16,185,129,0.15)':'rgba(255,255,255,0.05)',marginBottom:4}}>
-                          <button onClick={e=>{e.stopPropagation();toggleSub(vGoal.id,vTask.id,s.id);setViewTaskM(p=>({...p,task:{...p.task,subtasks:p.task.subtasks.map(x=>x.id===s.id?{...x,completed:!x.completed}:x)}}));}} style={{background:'none',border:'none',cursor:'pointer',flexShrink:0,marginTop:2}}>
-                            {s.completed?<I n="checkCircle" size={16} color="#34d399"/>:<div style={{width:16,height:16,border:'2px solid #475569',borderRadius:4}}/>}
-                          </button>
-                          <div style={{flex:1,minWidth:0}}>
-                            <div style={{fontSize:14,fontWeight:500,lineHeight:1.5,wordBreak:'break-word',color:s.completed?'#64748b':'#e2e8f0',textDecoration:s.completed?'line-through':'none'}}>{s.name}</div>
-                            <div style={{fontSize:11,color:'#475569',marginTop:2,fontWeight:600}}>{MONTHS[(s.month||1)-1]}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  : <div style={{textAlign:'center',padding:'32px 0',color:'#475569'}}>
-                      <I n="checkCircle" size={28} color="#334155"/>
-                      <div style={{fontSize:13,fontWeight:600,marginTop:10}}>No steps added yet</div>
-                      <div style={{fontSize:12,color:'#334155',marginTop:4}}>Use the Edit button to add subtasks</div>
-                    </div>
-                }
-              </div>
-            </div>
-          </div>
-        );
-      })()}
 
       {editTaskM&&<Modal onClose={()=>setEditTaskM(null)} width="max-w-sm">
         <MHead title="Edit Task" sub={editTaskM.task.name} onClose={()=>setEditTaskM(null)}/>
