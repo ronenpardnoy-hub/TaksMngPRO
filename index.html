@@ -214,10 +214,16 @@ function useAppData() {
   const uid=user?.id||null;
 
   // ── Auth ──────────────────────────────────────────────────────────────────
-  const signIn=async()=>{await window._db.auth.signOut();return window._db.auth.signInWithOAuth({
-    provider:'google',
-    options:{redirectTo: window.location.href, queryParams:{prompt:'select_account'}},
-  });}
+  const signIn=async()=>{
+    await window._db.auth.signOut();
+    return window._db.auth.signInWithOAuth({
+      provider:'google',
+      options:{
+        redirectTo: window.location.origin + window.location.pathname,
+        queryParams:{prompt:'select_account'},
+      },
+    });
+  }
   const signOut=async()=>{
     await window._db.auth.signOut();
     setReady(false); setGoals([]); setKpis([]); setTeam([]);
@@ -225,9 +231,23 @@ function useAppData() {
   };
 
   useEffect(()=>{
-    // Get initial session (handles page reload after OAuth redirect)
-    window._db.auth.getSession().then(({data:{session}})=>setUser(session?.user||null));
-    // Listen for auth changes
+    // Handle PKCE code exchange after OAuth redirect (Supabase v2 default flow)
+    const params=new URLSearchParams(window.location.search);
+    const code=params.get('code');
+    if(code){
+      window._db.auth.exchangeCodeForSession(code).then(({data,error})=>{
+        if(!error&&data?.session){
+          setUser(data.session.user);
+          // Clean the ?code= from URL without triggering a reload
+          const clean=window.location.origin+window.location.pathname;
+          window.history.replaceState({},'',clean);
+        }
+      });
+    } else {
+      // Normal reload — just grab existing session
+      window._db.auth.getSession().then(({data:{session}})=>setUser(session?.user||null));
+    }
+    // Listen for all subsequent auth state changes
     const {data:{subscription}}=window._db.auth.onAuthStateChange((_,session)=>setUser(session?.user||null));
     return ()=>subscription.unsubscribe();
   },[]);
