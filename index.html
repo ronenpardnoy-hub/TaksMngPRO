@@ -194,7 +194,21 @@ const getTrend = kpi => { const e=Object.entries(kpi.actuals||{}).sort((a,b)=>+a
 const getYTD = kpi => { const v=Object.values(kpi.actuals||{}).filter(x=>x!==null&&x!==undefined&&x!==''); return v.length?Math.round(v.reduce((a,b)=>a+ +b,0)/v.length):null; };
 const getStatus = (kpi,m) => { const a=(kpi.actuals||{})[m],t=(kpi.targets||{})[m]; if(a===null||a===undefined||a==='')return'empty'; if(t===null||t===undefined||t==='')return'data'; return kpi.type==='higher'?(+a>=+t?'good':'bad'):(+a<=+t?'good':'bad'); };
 
-// ─── SUPABASE DATA HOOK ───────────────────────────────────────────────────────
+// Sanitize KPIs loaded from DB — coerce all fields to expected types
+const sanitizeKpi = k => ({
+  ...k,
+  name:     String(k.name     ?? ''),
+  category: String(k.category ?? ''),
+  owner:    String(k.owner    ?? ''),
+  baseline: String(k.baseline ?? ''),
+  goal:     String(k.goal     ?? ''),
+  unit:     String(k.unit     ?? '%'),
+  type:     k.type === 'lower' ? 'lower' : 'higher',
+  targets:  k.targets  || {},
+  actuals:  k.actuals  || {},
+  details:  Object.fromEntries(Object.entries(k.details||{}).map(([key,val])=>[key, val!=null ? String(val) : ''])),
+});
+const sanitizeKpis = arr => (arr||[]).map(sanitizeKpi);
 // Architecture: one row per user in each table, storing all data as JSONB.
 // Table schema (run in Supabase SQL editor — see SETUP.md):
 //   user_data (user_id text PK, goals jsonb, kpis jsonb, team jsonb, updated_at timestamptz)
@@ -279,8 +293,8 @@ function useAppData() {
         setGoals(SEED_GOALS); setKpis(SEED_KPIS); setTeam(SEED_TEAM);
         localState.current={goals:SEED_GOALS,kpis:SEED_KPIS,team:SEED_TEAM};
       } else if(data){
-        setGoals(data.goals||[]); setKpis(data.kpis||[]); setTeam(data.team||[]);
-        localState.current={goals:data.goals||[],kpis:data.kpis||[],team:data.team||[]};
+        setGoals(data.goals||[]); setKpis(sanitizeKpis(data.kpis)); setTeam(data.team||[]);
+        localState.current={goals:data.goals||[],kpis:sanitizeKpis(data.kpis),team:data.team||[]};
       }
       setReady(true);
 
@@ -293,8 +307,8 @@ function useAppData() {
         },(payload)=>{
           const d=payload.new;
           // Only apply if this update came from another device (not ourselves)
-          setGoals(d.goals||[]); setKpis(d.kpis||[]); setTeam(d.team||[]);
-          localState.current={goals:d.goals||[],kpis:d.kpis||[],team:d.team||[]};
+          setGoals(d.goals||[]); setKpis(sanitizeKpis(d.kpis)); setTeam(d.team||[]);
+          localState.current={goals:d.goals||[],kpis:sanitizeKpis(d.kpis),team:d.team||[]};
         })
         .subscribe();
     };
@@ -581,7 +595,7 @@ function App() {
     const nameToId={};
     (importPrev.goals||[]).forEach(g=>(g.tasks||[]).forEach(t=>(t.assignees||[]).forEach(a=>{if(typeof a==='string'&&a.trim()){const n=a.trim().toLowerCase();const ex=team.find(m=>m.name.toLowerCase()===n);if(ex){nameToId[n]=ex.id;}else{const id=`t${Date.now()}_${uid6()}`;addMember({id,name:a.trim(),role:'Imported',email:''});nameToId[n]=id;}}})));
     (importPrev.goals||[]).forEach(g=>{const goal={id:`g${Date.now()}_${uid6()}`,name:g.name||'New Goal',quarter:+g.quarter||1,tasks:(g.tasks||[]).map(t=>({id:`tk${Date.now()}_${uid6()}`,name:t.name||'Task',quarter:+t.quarter||+g.quarter||1,month:+t.month||1,assigneeIds:(t.assignees||[]).map(a=>nameToId[a?.trim?.().toLowerCase()]).filter(Boolean),completed:false,subtasks:(t.subtasks||[]).map(s=>({id:`s${Date.now()}_${uid6()}`,name:typeof s==='string'?s:s.name||'Step',month:typeof s==='object'?+s.month||1:1,completed:false}))}))};addGoal(goal);setExpanded(p=>({...p,[goal.id]:true}));});
-    (importPrev.kpis||[]).forEach(k=>addKpi({id:`k${Date.now()}_${uid6()}`,category:k.category||'Imported',name:k.name||'KPI',owner:k.owner||'',baseline:String(k.baseline||''),goal:String(k.goal||''),unit:k.unit||'%',type:k.type==='lower'?'lower':'higher',targets:k.targets||{},actuals:k.actuals||{},details:k.details||{}}));
+    (importPrev.kpis||[]).forEach(k=>addKpi(sanitizeKpi({id:`k${Date.now()}_${uid6()}`,category:k.category||'Imported',name:k.name||'KPI',owner:k.owner||'',baseline:String(k.baseline||''),goal:String(k.goal||''),unit:k.unit||'%',type:k.type==='lower'?'lower':'higher',targets:k.targets||{},actuals:k.actuals||{},details:k.details||{}})));
     setImportM(false);setImportTxt('');setImportPrev(null);setImportStep('input');setFileName('');
   };
 
