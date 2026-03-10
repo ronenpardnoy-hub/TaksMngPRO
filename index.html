@@ -375,6 +375,7 @@ const P={
   sun:"M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M12 5a7 7 0 100 14A7 7 0 0012 5z",
   moon:"M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z",
   upload:"M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12",
+  image:"M21 19V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2zM8.5 13.5l2.5 3 3.5-4.5 4.5 6H5l3.5-4.5z",
   sparkles:"M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3zM5 17l.75 2.25L8 20l-2.25.75L5 23l-.75-2.25L2 20l2.25-.75L5 17zM19 3l.75 2.25L22 6l-2.25.75L19 9l-.75-2.25L16 6l2.25-.75L19 3z",
   zap:"M13 2L3 14h9l-1 8 10-12h-9l1-8z",
   wifi:"M5 12.55a11 11 0 0114.08 0M1.42 9a16 16 0 0121.16 0M8.53 16.11a6 6 0 016.95 0M12 20h.01",
@@ -473,6 +474,7 @@ function App() {
   const [importPrev,setImportPrev]=useState(null);
   const [importErr,setImportErr]=useState('');
   const [fileName,setFileName]=useState('');
+  const [pasteImg,setPasteImg]=useState(null); // {dataUrl, mime}
 
   // Computed
   const allTasks=useMemo(()=>goals.flatMap(g=>g.tasks||[]),[goals]);
@@ -508,12 +510,27 @@ function App() {
   };
 
   // Import
-  const openImport=()=>{setImportM(true);setImportStep('input');if(!window.XLSX){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';document.head.appendChild(s);}};
-  const onFile=e=>{const f=e.target.files[0];if(!f)return;setFileName(f.name);setImportErr('');window.__pif=null;
+  const openImport=()=>{setImportM(true);setImportStep('input');setPasteImg(null);if(!window.XLSX){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';document.head.appendChild(s);}};
+  const onFile=e=>{const f=e.target.files[0];if(!f)return;setFileName(f.name);setImportErr('');window.__pif=null;setPasteImg(null);
     if(f.name.match(/\.(csv|txt)$/i)){const r=new FileReader();r.onload=ev=>setImportTxt(ev.target.result||'');r.readAsText(f);return;}
     if(f.name.match(/\.(xlsx|xls)$/i)){const r=new FileReader();r.onload=ev=>{try{if(window.XLSX){const wb=window.XLSX.read(ev.target.result,{type:'array'});setImportTxt(wb.SheetNames.map(n=>`=== Sheet: ${n} ===\n${window.XLSX.utils.sheet_to_csv(wb.Sheets[n],{blankrows:false})}`).join('\n\n'));}else setImportTxt(`[Excel: ${f.name}]`);}catch{setImportTxt(`[Excel: ${f.name}]`);}};r.readAsArrayBuffer(f);return;}
-    if(f.type.startsWith('image/')||f.type==='application/pdf'){const r=new FileReader();r.onload=ev=>{window.__pif={base64:ev.target.result.split(',')[1],mime:f.type,name:f.name};setImportTxt(`[Attached: ${f.name}]`);};r.readAsDataURL(f);return;}
+    if(f.type.startsWith('image/')||f.type==='application/pdf'){const r=new FileReader();r.onload=ev=>{const dataUrl=ev.target.result;window.__pif={base64:dataUrl.split(',')[1],mime:f.type,name:f.name};setImportTxt(`[Attached: ${f.name}]`);if(f.type.startsWith('image/'))setPasteImg({dataUrl,mime:f.type});};r.readAsDataURL(f);return;}
     setImportErr('Unsupported format.');
+  };
+  const onPaste=e=>{
+    const items=Array.from(e.clipboardData?.items||[]);
+    const imgItem=items.find(it=>it.type.startsWith('image/'));
+    if(!imgItem)return;
+    e.preventDefault();
+    const blob=imgItem.getAsFile();if(!blob)return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      const dataUrl=ev.target.result;
+      window.__pif={base64:dataUrl.split(',')[1],mime:blob.type,name:'pasted-image.png'};
+      setFileName('pasted-image.png');setImportTxt('[Attached: pasted-image.png]');
+      setPasteImg({dataUrl,mime:blob.type});setImportErr('');
+    };
+    r.readAsDataURL(blob);
   };
 
   const analyze=async()=>{
@@ -1116,19 +1133,42 @@ function App() {
         </div>
       </Modal>}
 
-      {importM&&<Modal onClose={()=>{setImportM(false);setImportStep('input');setImportPrev(null);setImportTxt('');setFileName('');}} width="max-w-lg">
-        <MHead title="AI Smart Import" sub="Paste data or upload a file" icon="sparkles" onClose={()=>{setImportM(false);setImportStep('input');setImportPrev(null);setImportTxt('');setFileName('');}}/>
+      {importM&&<Modal onClose={()=>{setImportM(false);setImportStep('input');setImportPrev(null);setImportTxt('');setFileName('');setPasteImg(null);}} width="max-w-lg">
+        <MHead title="AI Smart Import" sub="Paste data or upload a file" icon="sparkles" onClose={()=>{setImportM(false);setImportStep('input');setImportPrev(null);setImportTxt('');setFileName('');setPasteImg(null);}}/>
         <div style={{display:'flex',gap:4,marginBottom:16}}>
           {['input','analyzing','preview','importing'].map((s,i)=><div key={s} style={{height:3,flex:1,borderRadius:2,background:['input','analyzing','preview','importing'].indexOf(importStep)>=i?'#6366f1':'rgba(255,255,255,0.08)',transition:'background .4s'}}/>)}
         </div>
 
         {importStep==='input'&&<>
-          <label style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'10px',borderRadius:10,border:`2px dashed ${fileName?'rgba(99,102,241,0.4)':'rgba(255,255,255,0.08)'}`,cursor:'pointer',marginBottom:10,color:fileName?'#818cf8':'#64748b',fontSize:10,fontWeight:700}}>
-            <I n="upload" size={14}/><span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:260}}>{fileName?`✓ ${fileName}`:'Upload Excel, CSV, PDF, or Image'}</span>
-            <input type="file" style={{display:'none'}} accept=".xlsx,.xls,.csv,.txt,.pdf,image/*" onChange={onFile}/>
-          </label>
-          <textarea style={{width:'100%',height:100,borderRadius:10,border:'1px solid rgba(255,255,255,0.08)',padding:'10px 12px',fontSize:10,outline:'none',resize:'none',fontWeight:500,background:'rgba(255,255,255,0.04)',color:'#e2e8f0'}} placeholder="Or paste goals, tasks, KPIs from Excel, email, Word…" value={importTxt} onChange={e=>setImportTxt(e.target.value)}/>
-          {importErr&&<div style={{fontSize:10,color:'#f87171',background:'rgba(239,68,68,0.1)',borderRadius:8,padding:'6px 10px',marginTop:8,textAlign:'center'}}>{importErr}</div>}
+          {/* Image preview (pasted or uploaded image) */}
+          {pasteImg&&<div style={{position:'relative',marginBottom:10,borderRadius:12,overflow:'hidden',border:'1px solid rgba(99,102,241,0.3)',background:'rgba(99,102,241,0.05)'}}>
+            <img src={pasteImg.dataUrl} alt="Attached" style={{width:'100%',maxHeight:200,objectFit:'contain',display:'block',borderRadius:12}}/>
+            <button onClick={()=>{setPasteImg(null);setFileName('');setImportTxt('');window.__pif=null;}} style={{position:'absolute',top:6,right:6,width:22,height:22,borderRadius:'50%',background:'rgba(0,0,0,0.6)',border:'none',cursor:'pointer',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center'}}><I n="x" size={11}/></button>
+            <div style={{padding:'6px 10px',fontSize:11,fontWeight:600,color:'#818cf8'}}>✓ Image attached — ready to analyze</div>
+          </div>}
+
+          {/* Drop zone / file pickers */}
+          {!pasteImg&&<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:10}}>
+            <label style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'10px',borderRadius:10,border:`2px dashed ${fileName&&!fileName.match(/\.(png|jpg|jpeg|gif|webp|bmp)$/i)?'rgba(99,102,241,0.4)':'rgba(255,255,255,0.08)'}`,cursor:'pointer',color:fileName&&!fileName.match(/\.(png|jpg|jpeg|gif|webp|bmp)$/i)?'#818cf8':'#64748b',fontSize:11,fontWeight:700,textAlign:'center'}}>
+              <I n="upload" size={13}/><span>{fileName&&!fileName.match(/\.(png|jpg|jpeg|gif|webp|bmp)$/i)?`✓ ${fileName}`:'File / CSV / Excel'}</span>
+              <input type="file" style={{display:'none'}} accept=".xlsx,.xls,.csv,.txt,.pdf" onChange={onFile}/>
+            </label>
+            <label style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'10px',borderRadius:10,border:`2px dashed ${fileName&&fileName.match(/\.(png|jpg|jpeg|gif|webp|bmp)$/i)?'rgba(99,102,241,0.4)':'rgba(255,255,255,0.08)'}`,cursor:'pointer',color:fileName&&fileName.match(/\.(png|jpg|jpeg|gif|webp|bmp)$/i)?'#818cf8':'#64748b',fontSize:11,fontWeight:700,textAlign:'center'}}>
+              <I n="image" size={13}/><span>{fileName&&fileName.match(/\.(png|jpg|jpeg|gif|webp|bmp)$/i)?`✓ ${fileName}`:'Upload Image'}</span>
+              <input type="file" style={{display:'none'}} accept="image/png,image/jpeg,image/gif,image/webp,image/bmp,image/*" onChange={onFile}/>
+            </label>
+          </div>}
+
+          {/* Text area — also handles Ctrl+V image paste */}
+          {!pasteImg&&<textarea
+            style={{width:'100%',height:110,borderRadius:10,border:'1px solid rgba(255,255,255,0.08)',padding:'10px 12px',fontSize:11,outline:'none',resize:'none',fontWeight:500,background:'rgba(255,255,255,0.04)',color:'#e2e8f0'}}
+            placeholder={"Paste text (goals, tasks, KPIs…) or paste a screenshot with Ctrl+V / ⌘V"}
+            value={importTxt}
+            onChange={e=>setImportTxt(e.target.value)}
+            onPaste={onPaste}
+          />}
+
+          {importErr&&<div style={{fontSize:11,color:'#f87171',background:'rgba(239,68,68,0.1)',borderRadius:8,padding:'6px 10px',marginTop:8,textAlign:'center'}}>{importErr}</div>}
           <div style={{display:'flex',gap:8,marginTop:12}}><BtnGhost onClick={()=>setImportM(false)}/><Btn onClick={analyze} disabled={!importTxt.trim()&&!window.__pif}>Analyze Data</Btn></div>
         </>}
 
