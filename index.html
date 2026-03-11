@@ -40,8 +40,8 @@ input:focus,textarea:focus,select:focus{outline:none;}
 .google-btn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:14px 24px;border-radius:12px;background:#fff;color:#1e293b;font-size:14px;font-weight:700;border:1px solid #e2e8f0;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,0.1);}
 .google-btn:hover{background:#f8fafc;box-shadow:0 4px 16px rgba(0,0,0,0.15);transform:translateY(-1px);}
 .google-btn:active{transform:translateY(0);}
-.kpi-btns{opacity:0;transition:opacity .15s;}
-tr:hover .kpi-btns{opacity:1;}
+.kpi-btns{opacity:0;transition:opacity .2s;}
+.kpi-name-cell:hover .kpi-btns{opacity:1!important;}
 .kpi-editable:hover{background:rgba(99,102,241,0.12)!important;outline:1px dashed rgba(99,102,241,0.35);border-radius:3px;}
 .goal-row:hover{background:rgba(255,255,255,0.04)!important;}
 @media(max-width:640px){nav>div{gap:2px;}nav button{padding:8px 10px!important;}}
@@ -1080,14 +1080,14 @@ KPI EXTRACTION RULES — FOLLOW EXACTLY:
                             <KpiInline kpiId={kpi.id} field="category" display={kpi.category} style={{textTransform:'uppercase',fontSize:13,fontWeight:900,color:'#34d399',textAlign:'center'}}/>
                           </td>
                           {/* KPI Name */}
-                          <td rowSpan={hasD?3:2} style={{padding:'6px 8px',...br,fontWeight:700,minWidth:160}}>
-                            <div style={{display:'flex',alignItems:'center',gap:4,marginBottom:2}}>{kpi.isAuto&&<I n="zap" size={9} color="#fbbf24"/>}
-                              <KpiInline kpiId={kpi.id} field="name" display={kpi.name} style={{fontSize:13,lineHeight:1.3,fontWeight:700,textAlign:'left'}}/>
+                          <td rowSpan={hasD?3:2} className="kpi-name-cell" style={{padding:'6px 8px',...br,fontWeight:700,minWidth:160,verticalAlign:'top'}}>
+                            <div style={{display:'flex',alignItems:'center',gap:4,marginBottom:4}}>{kpi.isAuto&&<I n="zap" size={9} color="#fbbf24"/>}
+                              <KpiInline kpiId={kpi.id} field="name" display={kpi.name} style={{fontSize:13,lineHeight:1.4,fontWeight:700,textAlign:'left'}}/>
                             </div>
-                            <div style={{display:'flex',gap:6,marginTop:4,flexWrap:'wrap'}} className="kpi-btns">
-                              <KpiInline kpiId={kpi.id} field="unit" display={`unit: ${kpi.unit||'—'}`} style={{fontSize:10,fontWeight:700,color:'#64748b',textAlign:'left'}}/>
-                              <button onClick={()=>openKpiCell(kpi.id,'type',kpi.type)} style={{padding:'1px 6px',borderRadius:4,background:kpi.type==='lower'?'rgba(239,68,68,0.1)':'rgba(16,185,129,0.1)',border:'none',cursor:'pointer',color:kpi.type==='lower'?'#f87171':'#34d399',fontSize:10,fontWeight:700}}>{kpi.type==='lower'?'↓ Lower':'↑ Higher'}</button>
-                              {!kpi.isAuto&&<button onClick={()=>softDelete(`KPI "${kpi.name}"`,()=>deleteKpi(kpi.id),()=>addKpi(kpi))} style={{padding:'1px 6px',borderRadius:4,background:'rgba(239,68,68,0.1)',border:'none',cursor:'pointer',color:'#f87171',fontSize:10,fontWeight:700}}>✕ Delete</button>}
+                            <div style={{display:'flex',gap:5,flexWrap:'wrap',alignItems:'center'}} className="kpi-btns">
+                              <button onClick={()=>openKpiCell(kpi.id,'unit',kpi.unit)} style={{padding:'2px 7px',borderRadius:5,background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',cursor:'pointer',color:'#94a3b8',fontSize:10,fontWeight:700}}>unit: {kpi.unit||'—'}</button>
+                              <button onClick={()=>{mutateKpi(kpi.id,k=>({...k,type:k.type==='lower'?'higher':'lower'}));}} style={{padding:'2px 7px',borderRadius:5,background:kpi.type==='lower'?'rgba(239,68,68,0.1)':'rgba(16,185,129,0.1)',border:`1px solid ${kpi.type==='lower'?'rgba(239,68,68,0.25)':'rgba(16,185,129,0.25)'}`,cursor:'pointer',color:kpi.type==='lower'?'#f87171':'#34d399',fontSize:10,fontWeight:700}}>{kpi.type==='lower'?'↓ Lower':'↑ Higher'}</button>
+                              {!kpi.isAuto&&<button onClick={()=>softDelete(`KPI "${kpi.name}"`,()=>deleteKpi(kpi.id),()=>addKpi(kpi))} style={{padding:'2px 7px',borderRadius:5,background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.2)',cursor:'pointer',color:'#f87171',fontSize:10,fontWeight:700}}>✕ Delete</button>}
                             </div>
                           </td>
                           {/* Owner */}
