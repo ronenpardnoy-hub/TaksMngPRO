@@ -83,25 +83,41 @@ if (window.SUPABASE_URL.indexOf('REPLACE') !== -1 || window.SUPABASE_ANON.indexO
 const { useState, useEffect, useCallback, useMemo, useRef } = React;
 
 // ─── SVG Chart Components (no CDN needed) ─────────────────────────────────
-const SvgBarChart = ({data, h=160, colorDone='#10b981', colorOpen='#6366f1'}) => {
+const SvgBarChart = ({data, h=160}) => {
   if(!data||!data.length) return null;
-  const maxV = Math.max(...data.map(d=>(d.completed||0)+(d.open||0)+(d.total||0)+(d.done||0)), 1);
-  const W=300, H=h, pad={l:10,r:10,t:8,b:24};
-  const bw = Math.max(6, Math.floor((W-pad.l-pad.r)/data.length*0.55));
-  const bx = (i) => pad.l + i*((W-pad.l-pad.r)/data.length) + ((W-pad.l-pad.r)/data.length - bw)/2;
-  const by = (v) => pad.t + (H-pad.t-pad.b)*(1 - v/maxV);
-  const bh = (v) => (H-pad.t-pad.b)*v/maxV;
+  // data[i] = {name, segments:[{value, color}]}
+  const totals = data.map(d=>(d.segments||[]).reduce((a,s)=>a+s.value,0));
+  const maxV = Math.max(...totals, 1);
+  const W=300, H=h, pad={l:10,r:10,t:12,b:28};
+  const chartH = H-pad.t-pad.b;
+  const slotW = (W-pad.l-pad.r)/data.length;
+  const bw = Math.max(28, Math.floor(slotW*0.6));
+  const bx = i => pad.l + i*slotW + (slotW-bw)/2;
+  const toY = v => pad.t + chartH*(1-v/maxV);
+  const toH = v => chartH*(v/maxV);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{width:'100%',height:'100%'}}>
+    <svg viewBox={`0 0 ${W} ${H}`} style={{width:'100%',height:'100%',overflow:'visible'}}>
+      {/* Grid lines */}
+      {[0.25,0.5,0.75,1].map(f=>(
+        <line key={f} x1={pad.l} x2={W-pad.r} y1={pad.t+chartH*(1-f)} y2={pad.t+chartH*(1-f)} stroke="rgba(255,255,255,0.05)" strokeWidth={1}/>
+      ))}
       {data.map((d,i)=>{
-        const done = d.completed||d.done||0;
-        const open = d.open||(d.total||0)-(done)||0;
-        const total = done + open;
-        return <g key={i}>
-          {done>0 && <rect x={bx(i)} y={by(total)} width={bw} height={bh(done)} rx={2} fill={colorDone} opacity={0.9}/>}
-          {open>0 && <rect x={bx(i)} y={by(open)} width={bw} height={bh(open)} rx={2} fill={colorOpen} opacity={0.7}/>}
-          <text x={bx(i)+bw/2} y={H-6} textAnchor="middle" fontSize={8} fill="#64748b">{d.name}</text>
-        </g>;
+        const total=totals[i];
+        let stackY=pad.t+chartH; // start from bottom
+        return (
+          <g key={i}>
+            {(d.segments||[]).slice().reverse().map((seg,si)=>{
+              if(!seg.value) return null;
+              const segH=toH(seg.value);
+              stackY-=segH;
+              return <rect key={si} x={bx(i)} y={stackY} width={bw} height={segH} rx={si===0?3:0} ry={si===0?3:0} fill={seg.color} opacity={0.9}/>;
+            })}
+            {/* Total label above bar */}
+            {total>0&&<text x={bx(i)+bw/2} y={toY(total)-4} textAnchor="middle" fontSize={9} fontWeight="700" fill="#94a3b8">{total}</text>}
+            {/* Quarter label */}
+            <text x={bx(i)+bw/2} y={H-8} textAnchor="middle" fontSize={10} fontWeight="700" fill="#64748b">{d.name}</text>
+          </g>
+        );
       })}
     </svg>
   );
@@ -194,11 +210,38 @@ const SEED_GOALS = [
 ];
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
-const getTaskProgress = t => !t.subtasks?.length?(t.completed?100:0):Math.round(t.subtasks.filter(s=>s.completed).length/t.subtasks.length*100);
+const getTaskProgress = t => !t.subtasks?.length?(t.completed||t.status==='done'?100:0):Math.round(t.subtasks.filter(s=>s.completed||s.status==='done').length/t.subtasks.length*100);
 const getGoalProgress = g => !g.tasks?.length?0:Math.round(g.tasks.reduce((a,t)=>a+getTaskProgress(t),0)/g.tasks.length);
 const getTrend = kpi => { const e=Object.entries(kpi.actuals||{}).sort((a,b)=>+a[0]-+b[0]); return e.length<2?0:+e[e.length-1][1]-+e[e.length-2][1]; };
 const getYTD = kpi => { const v=Object.values(kpi.actuals||{}).filter(x=>x!==null&&x!==undefined&&x!==''); return v.length?Math.round(v.reduce((a,b)=>a+ +b,0)/v.length):null; };
 const getStatus = (kpi,m) => { const a=(kpi.actuals||{})[m],t=(kpi.targets||{})[m]; if(a===null||a===undefined||a==='')return'empty'; if(t===null||t===undefined||t==='')return'data'; return kpi.type==='higher'?(+a>=+t?'good':'bad'):(+a<=+t?'good':'bad'); };
+
+// ─── TASK STATUS CONFIG ───────────────────────────────────────────────────────
+// TASK_STATUSES is now dynamic — loaded from App state (customStatuses)
+// Default statuses used as fallback before state loads
+const DEFAULT_STATUSES = [
+  {id:'open',       label:'Open',        color:'#64748b', action:'none'},
+  {id:'in-progress',label:'In Progress', color:'#f59e0b', action:'active'},
+  {id:'done',       label:'Done',        color:'#10b981', action:'complete'},
+  {id:'blocked',    label:'Blocked',     color:'#ef4444', action:'none'},
+  {id:'cancelled',  label:'Cancelled',   color:'#6366f1', action:'cancel'},
+];
+const mkStatusStyle = color => {
+  const hex = color.replace('#','');
+  const r=parseInt(hex.slice(0,2),16),g=parseInt(hex.slice(2,4),16),b=parseInt(hex.slice(4,6),16);
+  return {color, bg:`rgba(${r},${g},${b},0.12)`, border:`rgba(${r},${g},${b},0.3)`};
+};
+// Build TASK_STATUSES map from array (used in places that still reference static map)
+const buildStatusMap = arr => Object.fromEntries((arr||DEFAULT_STATUSES).map(s=>([s.id,{...mkStatusStyle(s.color),label:s.label,action:s.action||'none'}])));
+const normalizeStatus = raw => {
+  if(!raw) return 'open';
+  const r = String(raw).toLowerCase().trim();
+  if(r==='done'||r==='completed'||r==='complete'||r==='finished'||r==='closed'||r==='true'||r==='1') return 'done';
+  if(r==='in-progress'||r==='in progress'||r==='inprogress'||r==='active'||r==='wip'||r==='started'||r==='ongoing') return 'in-progress';
+  if(r==='blocked'||r==='blocker'||r==='stuck') return 'blocked';
+  if(r==='cancelled'||r==='canceled'||r==='dropped'||r==='skipped'||r==='false'||r==='0') return 'cancelled';
+  return 'open';
+};
 
 // Sanitize KPIs loaded from DB — coerce all fields to expected types
 const sanitizeKpi = k => ({
@@ -634,6 +677,22 @@ function App() {
   const [addMemM,setAddMemM]=useState(false);
   const [addMemF,setAddMemF]=useState({name:'',role:'',email:''});
 
+  // Custom Statuses (persisted in Supabase via user_data)
+  const [customStatuses,setCustomStatuses]=useState(()=>{
+    try{const s=localStorage.getItem('taskmng_statuses');return s?JSON.parse(s):DEFAULT_STATUSES;}catch{return DEFAULT_STATUSES;}
+  });
+  const saveStatuses=arr=>{setCustomStatuses(arr);try{localStorage.setItem('taskmng_statuses',JSON.stringify(arr));}catch{}};
+  const TASK_STATUSES=useMemo(()=>buildStatusMap(customStatuses),[customStatuses]);
+  const STATUS_IDS=useMemo(()=>customStatuses.map(s=>s.id),[customStatuses]);
+
+  // Status manager modal
+  const [statusMgrM,setStatusMgrM]=useState(false);
+  const [statusEdit,setStatusEdit]=useState(null); // {idx, ...fields} or null=new
+  const [statusForm,setStatusForm]=useState({label:'',color:'#64748b',action:'none'});
+
+  // Status picker per-task/sub dropdown
+  const [statusPicker,setStatusPicker]=useState(null); // {type:'task'|'sub', gid, tid, sid?, rect}
+
   // Import
   const [importM,setImportM]=useState(false);
   const [importTxt,setImportTxt]=useState('');
@@ -658,7 +717,14 @@ function App() {
   },[ready]);
   const doneCnt=useMemo(()=>allTasks.filter(t=>t.completed||getTaskProgress(t)===100).length,[allTasks]);
   const prog=useMemo(()=>!goals.length?0:Math.round(goals.reduce((a,g)=>a+getGoalProgress(g),0)/goals.length),[goals]);
-  const qData=useMemo(()=>[1,2,3,4].map(q=>{const qt=allTasks.filter(t=>t.quarter===q),c=qt.filter(t=>t.completed||getTaskProgress(t)===100).length;return{name:`Q${q}`,completed:c,open:qt.length-c};}),[allTasks]);
+  const qData=useMemo(()=>[1,2,3,4].map(q=>{
+    const qt=allTasks.filter(t=>t.quarter===q);
+    const segments=customStatuses.map(s=>{
+      const count=qt.filter(t=>(t.status||( t.completed?'done':'open'))===s.id).length;
+      return{value:count,color:s.color,label:s.label};
+    }).filter(s=>s.value>0);
+    return{name:`Q${q}`,segments,total:qt.length};
+  }),[allTasks,customStatuses]);
   const mData=useMemo(()=>MONTHS.map((m,i)=>{const mt=allTasks.filter(t=>t.month===i+1);return{name:m,tasks:mt.length,done:mt.filter(t=>t.completed||getTaskProgress(t)===100).length};}),[allTasks]);
   const filtGoals=useMemo(()=>goals.map(g=>({...g,tasks:(g.tasks||[]).filter(t=>{const ms=!search||t.name.toLowerCase().includes(search.toLowerCase());const mf=filter==='all'||(filter==='done'&&(t.completed||getTaskProgress(t)===100))||(filter==='open'&&!t.completed&&getTaskProgress(t)<100);return ms&&mf;})})).filter(g=>g.tasks.length>0||!search),[goals,search,filter]);
 
@@ -683,8 +749,38 @@ function App() {
   const saveKpiM=()=>{mutateKpi(kpiModal.kpi.id,k=>({...k,targets:{...k.targets,[kpiModal.m]:kpiForm.target!==''?+kpiForm.target:null},actuals:{...k.actuals,[kpiModal.m]:kpiForm.actual!==''?+kpiForm.actual:null},details:{...k.details,[kpiModal.m]:kpiForm.details}}));setKpiModal(null);};
 
   // Tasks
-  const toggleTask=(gid,tid)=>mutateGoal(gid,g=>({...g,tasks:g.tasks.map(t=>t.id!==tid?t:{...t,completed:!t.completed})}));
-  const toggleSub=(gid,tid,sid)=>mutateGoal(gid,g=>({...g,tasks:g.tasks.map(t=>t.id!==tid?t:{...t,subtasks:t.subtasks.map(s=>s.id!==sid?s:{...s,completed:!s.completed})})}));
+  const setTaskStatus=(gid,tid,newStatus)=>{const st=TASK_STATUSES[newStatus]||TASK_STATUSES[STATUS_IDS[0]];mutateGoal(gid,g=>({...g,tasks:g.tasks.map(t=>t.id!==tid?t:{...t,status:newStatus,completed:st.action==='complete'})}));};
+  const deriveTaskStatus=(subtasks,statusMap)=>{
+    // Priority order for propagation: blocked > in-progress > open > cancelled > done
+    const priority=['blocked','in-progress','open','cancelled','done'];
+    const actions=subtasks.map(s=>(statusMap[s.status||'open']||statusMap[Object.keys(statusMap)[0]])?.action||'none');
+    const statuses=subtasks.map(s=>s.status||'open');
+    // If all are 'complete' action → task is done
+    if(actions.every(a=>a==='complete')) return statuses[0]; // all same complete status
+    // Otherwise pick by priority
+    for(const p of priority){if(statuses.includes(p))return p;}
+    return statuses[0]||'open';
+  };
+  const setSubStatus=(gid,tid,sid,newStatus)=>{
+    const subSt=TASK_STATUSES[newStatus]||Object.values(TASK_STATUSES)[0];
+    mutateGoal(gid,g=>({...g,tasks:g.tasks.map(t=>{
+      if(t.id!==tid)return t;
+      const newSubs=t.subtasks.map(s=>s.id!==sid?s:{...s,status:newStatus,completed:subSt.action==='complete'});
+      const derivedStatus=deriveTaskStatus(newSubs,TASK_STATUSES);
+      const derivedSt=TASK_STATUSES[derivedStatus]||Object.values(TASK_STATUSES)[0];
+      return{...t,subtasks:newSubs,status:derivedStatus,completed:derivedSt.action==='complete'};
+    })}));
+  };
+  // Keep toggleTask/Sub for backward compat (cycles through statuses)
+  const toggleTask=(gid,tid)=>mutateGoal(gid,g=>({...g,tasks:g.tasks.map(t=>{if(t.id!==tid)return t;const cur=t.status||(t.completed?'done':'open');const ids=STATUS_IDS.length?STATUS_IDS:DEFAULT_STATUSES.map(s=>s.id);const next=ids[(ids.indexOf(cur)+1)%ids.length];const st=TASK_STATUSES[next];return{...t,status:next,completed:!!(st&&st.action==='complete')};})}));
+  const toggleSub=(gid,tid,sid)=>mutateGoal(gid,g=>({...g,tasks:g.tasks.map(t=>{
+    if(t.id!==tid)return t;
+    const ids=STATUS_IDS.length?STATUS_IDS:DEFAULT_STATUSES.map(s=>s.id);
+    const newSubs=t.subtasks.map(s=>{if(s.id!==sid)return s;const cur=s.status||(s.completed?'done':'open');const next=ids[(ids.indexOf(cur)+1)%ids.length];const st=TASK_STATUSES[next];return{...s,status:next,completed:!!(st&&st.action==='complete')};});
+    const derivedStatus=deriveTaskStatus(newSubs,TASK_STATUSES);
+    const derivedSt=TASK_STATUSES[derivedStatus]||Object.values(TASK_STATUSES)[0];
+    return{...t,subtasks:newSubs,status:derivedStatus,completed:derivedSt.action==='complete'};
+  })}));
   const addSub=(gid,tid,name,month)=>mutateGoal(gid,g=>({...g,tasks:g.tasks.map(t=>t.id!==tid?t:{...t,subtasks:[...(t.subtasks||[]),{id:`s${Date.now()}`,name,month:+month||1,completed:false}]})}));
   const delSub=(gid,tid,sid)=>mutateGoal(gid,g=>({...g,tasks:g.tasks.map(t=>t.id!==tid?t:{...t,subtasks:t.subtasks.filter(s=>s.id!==sid)})}));
   const saveSub=(gid,tid,sid,name,month)=>mutateGoal(gid,g=>({...g,tasks:g.tasks.map(t=>t.id!==tid?t:{...t,subtasks:t.subtasks.map(s=>s.id!==sid?s:{...s,name,month:+month||1})})}));
@@ -733,7 +829,7 @@ function App() {
     const hasF=!!window.__pif;
     if(!hasT&&!hasF)return;
     setImportStep('analyzing');setImportErr('');
-    const SYS=`You are an IT project data extraction assistant. Extract ALL goals, tasks, subtasks, and KPIs. Return ONLY raw JSON, no markdown. Format: {"goals":[{"name":"string","quarter":1,"tasks":[{"name":"string","quarter":1,"month":3,"assignees":["Name"],"subtasks":[{"name":"string","month":3}]}]}],"kpis":[{"category":"string","name":"string","owner":"string","baseline":"string","goal":"string","unit":"string","type":"higher","targets":{},"actuals":{},"details":{}}]}`;
+    const SYS=`You are an IT project data extraction assistant. Extract ALL goals, tasks, subtasks, and KPIs. Return ONLY raw JSON, no markdown. Format: {"goals":[{"name":"string","quarter":1,"tasks":[{"name":"string","quarter":1,"month":3,"status":"open","assignees":["Name"],"subtasks":[{"name":"string","month":3,"status":"open"}]}]}],"kpis":[{"category":"string","name":"string","owner":"string","baseline":"string","goal":"string","unit":"string","type":"higher","targets":{},"actuals":{},"details":{}}]}. CRITICAL: For every task and subtask, set the "status" field to one of: "open", "in-progress", "done", "blocked", "cancelled". Map any status word you find — done/complete/finished/closed/checked = "done"; active/wip/started/ongoing/in progress = "in-progress"; blocked/stuck = "blocked"; cancelled/dropped/skipped/n\/a = "cancelled"; everything else = "open". Never omit the status field.`;
     try{
       const content=hasF&&window.__pif?[{type:'image',source:{type:'base64',media_type:window.__pif.mime,data:window.__pif.base64}},{type:'text',text:'Extract all goals, tasks and KPIs.'}]:`Extract ALL goals, tasks, subtasks and KPIs from:\n\n${importTxt}`;
       const res=await fetch(`${window.SUPABASE_URL}/functions/v1/ai-import`,{method:'POST',headers:{'Content-Type':'application/json','apikey':window.SUPABASE_ANON,'Authorization':`Bearer ${window.SUPABASE_ANON}`},body:JSON.stringify({system:SYS,messages:[{role:'user',content}]})});
@@ -755,7 +851,7 @@ function App() {
     await new Promise(r=>setTimeout(r,300));
     const nameToId={};
     (importPrev.goals||[]).forEach(g=>(g.tasks||[]).forEach(t=>(t.assignees||[]).forEach(a=>{if(typeof a==='string'&&a.trim()){const n=a.trim().toLowerCase();const ex=team.find(m=>m.name.toLowerCase()===n);if(ex){nameToId[n]=ex.id;}else{const id=`t${Date.now()}_${uid6()}`;addMember({id,name:a.trim(),role:'Imported',email:''});nameToId[n]=id;}}})));
-    (importPrev.goals||[]).forEach(g=>{const goal={id:`g${Date.now()}_${uid6()}`,name:g.name||'New Goal',quarter:+g.quarter||1,tasks:(g.tasks||[]).map(t=>({id:`tk${Date.now()}_${uid6()}`,name:t.name||'Task',quarter:+t.quarter||+g.quarter||1,month:+t.month||1,assigneeIds:(t.assignees||[]).map(a=>nameToId[a?.trim?.().toLowerCase()]).filter(Boolean),completed:false,subtasks:(t.subtasks||[]).map(s=>({id:`s${Date.now()}_${uid6()}`,name:typeof s==='string'?s:s.name||'Step',month:typeof s==='object'?+s.month||1:1,completed:false}))}))};addGoal(goal);setExpanded(p=>({...p,[goal.id]:true}));});
+    (importPrev.goals||[]).forEach(g=>{const goal={id:`g${Date.now()}_${uid6()}`,name:g.name||'New Goal',quarter:+g.quarter||1,tasks:(g.tasks||[]).map(t=>{const ts=normalizeStatus(t.status||t.completed);return{id:`tk${Date.now()}_${uid6()}`,name:t.name||'Task',quarter:+t.quarter||+g.quarter||1,month:+t.month||1,status:ts,completed:ts==='done',assigneeIds:(t.assignees||[]).map(a=>nameToId[a?.trim?.().toLowerCase()]).filter(Boolean),subtasks:(t.subtasks||[]).map(s=>{const ss=normalizeStatus(typeof s==='object'?(s.status||s.completed):false);return{id:`s${Date.now()}_${uid6()}`,name:typeof s==='string'?s:s.name||'Step',month:typeof s==='object'?+s.month||1:1,status:ss,completed:ss==='done'};})};})};addGoal(goal);setExpanded(p=>({...p,[goal.id]:true}));});
     (importPrev.kpis||[]).forEach(k=>addKpi(sanitizeKpi({id:`k${Date.now()}_${uid6()}`,category:k.category||'Imported',name:k.name||'KPI',owner:k.owner||'',baseline:String(k.baseline||''),goal:String(k.goal||''),unit:k.unit||'%',type:k.type==='lower'?'lower':'higher',targets:k.targets||{},actuals:k.actuals||{},details:k.details||{}})));
     setImportM(false);setImportTxt('');setImportPrev(null);setImportStep('input');setFileName('');
   };
@@ -923,6 +1019,14 @@ function App() {
               <div style={{height:160}}>
                 <SvgBarChart data={qData} h={160}/>
               </div>
+              <div style={{display:'flex',flexWrap:'wrap',gap:8,marginTop:10}}>
+                {customStatuses.filter(s=>qData.some(q=>q.segments.some(seg=>seg.label===s.label))).map(s=>(
+                  <div key={s.id} style={{display:'flex',alignItems:'center',gap:4}}>
+                    <div style={{width:8,height:8,borderRadius:2,background:s.color,flexShrink:0}}/>
+                    <span style={{fontSize:10,fontWeight:700,color:'#64748b'}}>{s.label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
             <div style={{...card,borderRadius:16,padding:16}}>
               <div style={{fontSize:12,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:'#64748b',marginBottom:12}}>Monthly Workload</div>
@@ -1003,19 +1107,27 @@ function App() {
 
                 {exp&&<div style={{padding:12,display:'flex',flexDirection:'column',gap:10}}>
                   {(goal.tasks||[]).map(task=>{
-                    const tp=getTaskProgress(task),done=task.completed||(task.subtasks?.length>0&&tp===100);
+                    const tp=getTaskProgress(task);
+                    const taskStatus=task.status||(task.completed?'done':'open');
+                    const st=TASK_STATUSES[taskStatus]||Object.values(TASK_STATUSES)[0]||{color:"#64748b",bg:"rgba(100,116,139,0.12)",border:"rgba(100,116,139,0.25)",label:"Open",action:"none"};
+                    const isDone=taskStatus==='done'||(task.subtasks?.length>0&&tp===100);
+                    const isCancelled=taskStatus==='cancelled';
+                    const isBlocked=taskStatus==='blocked';
+                    const isInProgress=taskStatus==='in-progress';
                     return (
-                      <div key={task.id} style={{width:'100%',boxSizing:'border-box',borderRadius:12,border:done?'1px solid rgba(16,185,129,0.2)':'1px solid rgba(255,255,255,0.05)',background:done?'rgba(16,185,129,0.04)':'rgba(255,255,255,0.02)',padding:14,opacity:done?0.75:1,transition:'all .2s'}}>
+                      <div key={task.id} style={{width:'100%',boxSizing:'border-box',borderRadius:12,border:`1px solid ${isDone?'rgba(16,185,129,0.2)':isBlocked?'rgba(239,68,68,0.2)':isCancelled?'rgba(99,102,241,0.15)':'rgba(255,255,255,0.05)'}`,background:isDone?'rgba(16,185,129,0.04)':isBlocked?'rgba(239,68,68,0.03)':isCancelled?'rgba(99,102,241,0.03)':'rgba(255,255,255,0.02)',padding:14,opacity:isCancelled?0.6:1,transition:'all .2s'}}>
 
-                        {/* Task header: checkbox | name+meta (fills space) | avatars+actions */}
+                        {/* Task header */}
                         <div style={{display:'flex',alignItems:'flex-start',gap:10,marginBottom:10}}>
-                          <button onClick={()=>toggleTask(goal.id,task.id)} style={{width:20,height:20,borderRadius:'50%',border:done?'2px solid #10b981':'2px solid #475569',background:done?'#10b981':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,cursor:'pointer',marginTop:2,transition:'all .15s'}}>
-                            {done&&<I n="check" size={10} color="#fff"/>}
+                          <button onClick={e=>{e.stopPropagation();const r=e.currentTarget.getBoundingClientRect();setStatusPicker({type:'task',gid:goal.id,tid:task.id,x:r.left,y:r.bottom+4});}} title={`${st.label} — click to change status`} style={{width:20,height:20,borderRadius:'50%',border:`2px solid ${st.color}`,background:isDone||isInProgress?st.color:'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,cursor:'pointer',marginTop:2,transition:'all .15s'}}>
+                            {isDone&&<I n="check" size={10} color="#fff"/>}
+                            {isInProgress&&<div style={{width:6,height:6,borderRadius:'50%',background:'#fff'}}/>}
+                            {isBlocked&&<div style={{width:8,height:2,borderRadius:1,background:'#ef4444'}}/>}
                           </button>
-                          {/* Name takes all available width — no overflow, no clamp */}
                           <div style={{flex:1,minWidth:0,overflow:'visible'}}>
-                            <div style={{fontSize:14,fontWeight:700,lineHeight:1.5,wordBreak:'break-word',whiteSpace:'normal',textDecoration:done?'line-through':'none',opacity:done?0.5:1}}>{task.name}</div>
+                            <div style={{fontSize:14,fontWeight:700,lineHeight:1.5,wordBreak:'break-word',whiteSpace:'normal',textDecoration:isDone||isCancelled?'line-through':'none',opacity:isDone||isCancelled?0.5:1}}>{task.name}</div>
                             <div style={{display:'flex',alignItems:'center',gap:6,marginTop:5,flexWrap:'wrap'}}>
+                              <span style={{fontSize:11,fontWeight:700,textTransform:'uppercase',padding:'2px 7px',borderRadius:5,background:st.bg,color:st.color,border:`1px solid ${st.border}`}}>{st.label}</span>
                               <span style={{fontSize:12,fontWeight:700,textTransform:'uppercase',padding:'2px 7px',borderRadius:5,background:'rgba(99,102,241,0.12)',color:'#818cf8'}}>Q{task.quarter}</span>
                               <span style={{fontSize:12,color:'#64748b',fontWeight:700}}>→ {MONTHS[(task.month||1)-1]}</span>
                             </div>
@@ -1029,15 +1141,15 @@ function App() {
 
                         {(task.subtasks||[]).length>0&&<div style={{marginBottom:10}}>
                           <div style={{height:4,borderRadius:4,overflow:'hidden',background:'rgba(255,255,255,0.05)',marginBottom:4}}>
-                            <div style={{height:'100%',width:`${tp}%`,background:tp===100?'#10b981':'#6366f1',borderRadius:4,transition:'width .7s ease'}}/>
+                            <div style={{height:'100%',width:`${tp}%`,background:tp===100?'#10b981':isBlocked?'#ef4444':isInProgress?'#f59e0b':'#6366f1',borderRadius:4,transition:'width .7s ease'}}/>
                           </div>
                           <div style={{display:'flex',justifyContent:'space-between',fontSize:12}}>
-                            <span style={{color:'#64748b'}}>{task.subtasks.filter(s=>s.completed).length}/{task.subtasks.length} steps</span>
+                            <span style={{color:'#64748b'}}>{task.subtasks.filter(s=>s.completed||s.status==='done').length}/{task.subtasks.length} steps</span>
                             <span style={{fontWeight:700,color:tp===100?'#34d399':'#818cf8'}}>{tp}%</span>
                           </div>
                         </div>}
 
-                        {!(task.subtasks||[]).length&&!done&&<button onClick={()=>aiBreakdown(goal.id,task)} disabled={aiLoading===task.id} style={{width:'100%',padding:'8px',borderRadius:8,fontSize:13,fontWeight:700,background:'rgba(99,102,241,0.1)',color:'#818cf8',border:'1px solid rgba(99,102,241,0.2)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6,marginBottom:10,opacity:aiLoading===task.id?0.6:1}}>
+                        {!(task.subtasks||[]).length&&!isDone&&!isCancelled&&<button onClick={()=>aiBreakdown(goal.id,task)} disabled={aiLoading===task.id} style={{width:'100%',padding:'8px',borderRadius:8,fontSize:13,fontWeight:700,background:'rgba(99,102,241,0.1)',color:'#818cf8',border:'1px solid rgba(99,102,241,0.2)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6,marginBottom:10,opacity:aiLoading===task.id?0.6:1}}>
                           <I n={aiLoading===task.id?'refresh':'sparkles'} size={12}/>{aiLoading===task.id?'Generating…':'✨ AI Breakdown'}
                         </button>}
 
@@ -1045,12 +1157,19 @@ function App() {
                         {(task.subtasks||[]).length>0&&<div style={{display:'flex',flexWrap:'wrap',gap:8,marginBottom:4}}>
                           {(task.subtasks||[]).map(s=>{
                             const isEditing=editSubM&&editSubM.gid===goal.id&&editSubM.tid===task.id&&editSubM.sid===s.id;
-                            const cubeColor = s.completed
+                            const subStatus=s.status||(s.completed?'done':'open');
+                            const cubeColor = subStatus==='done'
                               ? {bg:'rgba(16,185,129,0.1)',border:'rgba(16,185,129,0.25)',text:'#4ade80',month:'rgba(16,185,129,0.5)',tick:'#10b981'}
+                              : subStatus==='blocked'
+                              ? {bg:'rgba(239,68,68,0.08)',border:'rgba(239,68,68,0.25)',text:'#fca5a5',month:'rgba(239,68,68,0.5)',tick:'#ef4444'}
+                              : subStatus==='in-progress'
+                              ? {bg:'rgba(245,158,11,0.08)',border:'rgba(245,158,11,0.25)',text:'#fcd34d',month:'rgba(245,158,11,0.5)',tick:'#f59e0b'}
+                              : subStatus==='cancelled'
+                              ? {bg:'rgba(99,102,241,0.06)',border:'rgba(99,102,241,0.2)',text:'#a5b4fc',month:'rgba(99,102,241,0.4)',tick:'#6366f1'}
                               : {bg:'rgba(255,255,255,0.04)',border:'rgba(255,255,255,0.1)',text:'#e2e8f0',month:'#64748b',tick:'#334155'};
                             return (
                               <div key={s.id} className="sub-cube" style={{position:'relative',borderRadius:12,border:`1.5px solid ${isEditing?'rgba(99,102,241,0.5)':cubeColor.border}`,background:isEditing?'rgba(99,102,241,0.08)':cubeColor.bg,padding:'12px',minWidth:110,maxWidth:180,flex:'1 1 130px',boxSizing:'border-box',transition:'all .15s',cursor:isEditing?'default':'pointer'}}
-                                onClick={()=>!isEditing&&toggleSub(goal.id,task.id,s.id)}>
+                                onClick={e=>{if(isEditing)return;e.stopPropagation();const r=e.currentTarget.getBoundingClientRect();setStatusPicker({type:'sub',gid:goal.id,tid:task.id,sid:s.id,x:r.left,y:r.bottom+4});}}>
                                 {isEditing?(
                                   /* ── Edit mode: inside the cube ── */
                                   <div style={{display:'flex',flexDirection:'column',gap:8}} onClick={e=>e.stopPropagation()}>
@@ -1078,15 +1197,21 @@ function App() {
                                   </div>
                                 ):(
                                   <>
-                                    {/* Completion tick — top right */}
-                                    <div style={{position:'absolute',top:9,right:9,width:17,height:17,borderRadius:5,border:s.completed?'none':`1.5px solid #334155`,background:s.completed?'#10b981':'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                                      {s.completed&&<I n="check" size={10} color="#fff"/>}
+                                    {/* Status indicator — top right */}
+                                    <div style={{position:'absolute',top:9,right:9,width:17,height:17,borderRadius:5,border:subStatus==='done'?'none':subStatus==='in-progress'?'none':`1.5px solid ${cubeColor.tick}33`,background:subStatus==='done'?'#10b981':subStatus==='in-progress'?'#f59e0b':subStatus==='blocked'?'transparent':subStatus==='cancelled'?'transparent':'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                                      {subStatus==='done'&&<I n="check" size={10} color="#fff"/>}
+                                      {subStatus==='in-progress'&&<div style={{width:6,height:6,borderRadius:'50%',background:'#fff'}}/>}
+                                      {subStatus==='blocked'&&<div style={{width:8,height:2,borderRadius:1,background:'#ef4444'}}/>}
+                                      {subStatus==='cancelled'&&<div style={{fontSize:9,color:'#818cf8',fontWeight:900,lineHeight:1}}>✕</div>}
                                     </div>
                                     {/* Name */}
-                                    <div style={{fontSize:13,fontWeight:600,lineHeight:1.45,color:cubeColor.text,wordBreak:'break-word',paddingRight:22,textDecoration:s.completed?'line-through':'none',opacity:s.completed?0.55:1,marginBottom:8}}>{s.name}</div>
-                                    {/* Footer: month + actions */}
+                                    <div style={{fontSize:13,fontWeight:600,lineHeight:1.45,color:cubeColor.text,wordBreak:'break-word',paddingRight:22,textDecoration:subStatus==='done'||subStatus==='cancelled'?'line-through':'none',opacity:subStatus==='done'||subStatus==='cancelled'?0.55:1,marginBottom:8}}>{s.name}</div>
+                                    {/* Footer: month + status label + actions */}
                                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                                      <span style={{fontSize:11,fontWeight:700,color:cubeColor.month,letterSpacing:'0.03em'}}>{MONTHS[(s.month||1)-1]}</span>
+                                      <div style={{display:'flex',alignItems:'center',gap:4}}>
+                                        <span style={{fontSize:11,fontWeight:700,color:cubeColor.month,letterSpacing:'0.03em'}}>{MONTHS[(s.month||1)-1]}</span>
+                                        {subStatus!=='open'&&<span style={{fontSize:10,fontWeight:800,textTransform:'uppercase',padding:'1px 5px',borderRadius:4,background:(TASK_STATUSES[subStatus]||Object.values(TASK_STATUSES)[0]).bg,color:(TASK_STATUSES[subStatus]||Object.values(TASK_STATUSES)[0]).color,border:`1px solid ${(TASK_STATUSES[subStatus]||Object.values(TASK_STATUSES)[0]).border}`}}>{(TASK_STATUSES[subStatus]||Object.values(TASK_STATUSES)[0]).label}</span>}
+                                      </div>
                                       <div className="cube-actions" style={{display:'flex',gap:3,opacity:0,transition:'opacity .15s'}}>
                                         <button title="Edit" onClick={e=>{e.stopPropagation();setEditSubM({gid:goal.id,tid:task.id,sid:s.id,name:s.name,month:s.month||1});}} style={{background:'rgba(99,102,241,0.18)',border:'none',borderRadius:5,cursor:'pointer',color:'#818cf8',padding:'3px 5px',lineHeight:1}}><I n="pen" size={9}/></button>
                                         <button title="Delete" onClick={e=>{e.stopPropagation();softDelete(`Step "${s.name}"`,()=>delSub(goal.id,task.id,s.id),()=>mutateGoal(goal.id,g=>({...g,tasks:g.tasks.map(t=>t.id!==task.id?t:{...t,subtasks:[...t.subtasks,s]})})));}} style={{background:'rgba(239,68,68,0.15)',border:'none',borderRadius:5,cursor:'pointer',color:'#f87171',padding:'3px 5px',lineHeight:1}}><I n="x" size={9}/></button>
@@ -1099,7 +1224,7 @@ function App() {
                           })}
                         </div>}
 
-                        {!done&&<div style={{marginTop:8,display:'flex',alignItems:'center',gap:6,padding:'6px 8px',borderRadius:8,border:'1px solid rgba(255,255,255,0.05)',background:'rgba(255,255,255,0.02)'}}>
+                        {!isDone&&!isCancelled&&<div style={{marginTop:8,display:'flex',alignItems:'center',gap:6,padding:'6px 8px',borderRadius:8,border:'1px solid rgba(255,255,255,0.05)',background:'rgba(255,255,255,0.02)'}}>
                           <input style={{flex:1,background:'none',border:'none',outline:'none',fontSize:12,color:text}} placeholder="Add step…" value={(subInputs[task.id]||{}).name||''}
                             onChange={e=>setSubInputs(p=>({...p,[task.id]:{...(p[task.id]||{}),name:e.target.value}}))}
                             onKeyDown={e=>{if(e.key==='Enter'&&(subInputs[task.id]||{}).name?.trim()){addSub(goal.id,task.id,subInputs[task.id].name.trim(),(subInputs[task.id]).month||task.month);setSubInputs(p=>({...p,[task.id]:{name:'',month:task.month}}));}}}/>
@@ -1218,6 +1343,27 @@ function App() {
               </div>
             </div>
           ))}
+
+          {/* ── Status Management ── */}
+          <div style={{...card,borderRadius:16,padding:20}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+              <div style={{display:'flex',alignItems:'center',gap:8}}><I n="activity" size={14} color="#f59e0b"/><h3 style={{fontSize:13,fontWeight:900}}>Task Statuses</h3></div>
+              <button onClick={()=>{setStatusForm({label:'',color:'#64748b',action:'none'});setStatusEdit('new');setStatusMgrM(true);}} style={{display:'flex',alignItems:'center',gap:5,padding:'5px 11px',borderRadius:8,fontSize:12,fontWeight:800,background:'rgba(245,158,11,0.1)',color:'#f59e0b',border:'1px solid rgba(245,158,11,0.25)',cursor:'pointer'}}>
+                <I n="plus" size={11}/> Add Status
+              </button>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:6}}>
+              {customStatuses.map((s,i)=>(
+                <div key={s.id} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:10,background:dm?'rgba(255,255,255,0.02)':'#f8fafc'}}>
+                  <div style={{width:12,height:12,borderRadius:'50%',background:s.color,flexShrink:0,boxShadow:`0 0 6px ${s.color}60`}}/>
+                  <span style={{flex:1,fontSize:12,fontWeight:700}}>{s.label}</span>
+                  <span style={{fontSize:11,fontWeight:700,textTransform:'uppercase',padding:'2px 6px',borderRadius:4,background:'rgba(255,255,255,0.05)',color:'#64748b'}}>{s.action==='complete'?'✓ Marks Done':s.action==='active'?'⚡ Active':s.action==='cancel'?'✕ Cancels':'— No Action'}</span>
+                  <button onClick={()=>{setStatusForm({label:s.label,color:s.color,action:s.action||'none'});setStatusEdit(i);setStatusMgrM(true);}} style={{padding:'3px 7px',borderRadius:6,fontSize:11,fontWeight:700,background:'rgba(99,102,241,0.1)',color:'#818cf8',border:'none',cursor:'pointer'}}>Edit</button>
+                  {customStatuses.length>1&&<button onClick={()=>saveStatuses(customStatuses.filter((_,j)=>j!==i))} style={{padding:'3px 7px',borderRadius:6,fontSize:11,fontWeight:700,background:'rgba(239,68,68,0.1)',color:'#f87171',border:'none',cursor:'pointer'}}>✕</button>}
+                </div>
+              ))}
+            </div>
+          </div>
 
           <div style={{...card,borderRadius:16,padding:20,border:'1px solid rgba(239,68,68,0.2)',background:'rgba(239,68,68,0.04)'}}>
             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:16}}><I n="alert" size={14} color="#f87171"/><h3 style={{fontSize:13,fontWeight:900,color:'#f87171'}}>Danger Zone</h3></div>
@@ -1414,6 +1560,98 @@ function App() {
           <div style={{textAlign:'center'}}><div style={{fontWeight:900,fontSize:13,marginBottom:4}}>Importing…</div><div style={{fontSize:13,color:'#64748b'}}>Saving to Supabase</div></div>
         </div>}
       </Modal>}
+
+      {/* ── STATUS MANAGER MODAL ── */}
+      {statusMgrM&&<div style={{position:'fixed',inset:0,zIndex:80,display:'flex',alignItems:'center',justifyContent:'center',padding:20,background:'rgba(0,0,0,0.7)',backdropFilter:'blur(8px)'}} onClick={()=>setStatusMgrM(false)}>
+        <div style={{width:'100%',maxWidth:400,borderRadius:20,background:'#0f172a',border:'1px solid rgba(245,158,11,0.25)',boxShadow:'0 25px 60px rgba(0,0,0,0.6)',overflow:'hidden'}} className="fadein" onClick={e=>e.stopPropagation()}>
+          <div style={{padding:'20px 20px 16px',borderBottom:'1px solid rgba(255,255,255,0.06)',background:'linear-gradient(135deg,rgba(245,158,11,0.08),transparent)'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <div style={{width:32,height:32,borderRadius:10,background:'rgba(245,158,11,0.15)',border:'1px solid rgba(245,158,11,0.3)',display:'flex',alignItems:'center',justifyContent:'center'}}><I n="activity" size={14} color="#f59e0b"/></div>
+                <h3 style={{fontSize:14,fontWeight:900}}>{statusEdit==='new'?'New Status':'Edit Status'}</h3>
+              </div>
+              <button onClick={()=>setStatusMgrM(false)} style={{background:'none',border:'none',cursor:'pointer',color:'#64748b',padding:4}}><I n="x" size={14}/></button>
+            </div>
+          </div>
+          <div style={{padding:20,display:'flex',flexDirection:'column',gap:14}}>
+            {/* Label */}
+            <div>
+              <label style={{fontSize:11,fontWeight:800,textTransform:'uppercase',letterSpacing:'0.06em',color:'#64748b',display:'block',marginBottom:6}}>Status Name</label>
+              <input value={statusForm.label} onChange={e=>setStatusForm(p=>({...p,label:e.target.value}))} placeholder="e.g. In Review" style={{width:'100%',boxSizing:'border-box',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,padding:'9px 12px',fontSize:13,fontWeight:600,color:'#e2e8f0',outline:'none'}}/>
+            </div>
+            {/* Color */}
+            <div>
+              <label style={{fontSize:11,fontWeight:800,textTransform:'uppercase',letterSpacing:'0.06em',color:'#64748b',display:'block',marginBottom:8}}>Color</label>
+              <div style={{display:'flex',flexWrap:'wrap',gap:8,marginBottom:8}}>
+                {['#64748b','#f59e0b','#10b981','#ef4444','#6366f1','#3b82f6','#ec4899','#8b5cf6','#06b6d4','#f97316'].map(c=>(
+                  <button key={c} onClick={()=>setStatusForm(p=>({...p,color:c}))} style={{width:28,height:28,borderRadius:'50%',background:c,border:statusForm.color===c?'3px solid #fff':'2px solid transparent',cursor:'pointer',boxShadow:statusForm.color===c?`0 0 10px ${c}`:'none',transition:'all .15s'}}/>
+                ))}
+                <input type="color" value={statusForm.color} onChange={e=>setStatusForm(p=>({...p,color:e.target.value}))} style={{width:28,height:28,borderRadius:'50%',border:'1px solid rgba(255,255,255,0.15)',cursor:'pointer',padding:0,background:'none'}} title="Custom color"/>
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:8,padding:'7px 12px',borderRadius:8,background:'rgba(255,255,255,0.04)',border:`1px solid ${statusForm.color}40`}}>
+                <div style={{width:10,height:10,borderRadius:'50%',background:statusForm.color,boxShadow:`0 0 8px ${statusForm.color}`}}/>
+                <span style={{fontSize:12,fontWeight:700,color:statusForm.color||'#e2e8f0'}}>{statusForm.label||'Preview'}</span>
+              </div>
+            </div>
+            {/* Action */}
+            <div>
+              <label style={{fontSize:11,fontWeight:800,textTransform:'uppercase',letterSpacing:'0.06em',color:'#64748b',display:'block',marginBottom:8}}>Action on Tasks</label>
+              <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                {[
+                  {id:'none',    label:'No Action',        desc:'Just changes the label'},
+                  {id:'complete',label:'Mark as Done',     desc:'Counts task as complete, strikethrough'},
+                  {id:'active',  label:'Mark as Active',   desc:'Shows dot indicator, amber progress'},
+                  {id:'cancel',  label:'Mark as Cancelled',desc:'Dims task, strikethrough, excluded from progress'},
+                ].map(a=>(
+                  <button key={a.id} onClick={()=>setStatusForm(p=>({...p,action:a.id}))} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:10,background:statusForm.action===a.id?'rgba(245,158,11,0.1)':'rgba(255,255,255,0.02)',border:statusForm.action===a.id?'1px solid rgba(245,158,11,0.3)':'1px solid rgba(255,255,255,0.06)',cursor:'pointer',textAlign:'left'}}>
+                    <div style={{width:14,height:14,borderRadius:'50%',border:`2px solid ${statusForm.action===a.id?'#f59e0b':'#334155'}`,background:statusForm.action===a.id?'#f59e0b':'transparent',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                      {statusForm.action===a.id&&<div style={{width:5,height:5,borderRadius:'50%',background:'#fff'}}/>}
+                    </div>
+                    <div>
+                      <div style={{fontSize:12,fontWeight:700,color:statusForm.action===a.id?'#fcd34d':'#e2e8f0'}}>{a.label}</div>
+                      <div style={{fontSize:11,color:'#64748b',marginTop:1}}>{a.desc}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* Save */}
+            <button disabled={!statusForm.label.trim()} onClick={()=>{
+              if(!statusForm.label.trim())return;
+              const id=statusEdit==='new'?statusForm.label.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')+(Date.now()%10000):customStatuses[statusEdit]?.id;
+              const entry={id,label:statusForm.label.trim(),color:statusForm.color,action:statusForm.action};
+              if(statusEdit==='new') saveStatuses([...customStatuses,entry]);
+              else saveStatuses(customStatuses.map((s,i)=>i===statusEdit?entry:s));
+              setStatusMgrM(false);
+            }} style={{padding:'10px',borderRadius:10,fontSize:13,fontWeight:800,background:statusForm.label.trim()?'#f59e0b':'rgba(255,255,255,0.05)',color:statusForm.label.trim()?'#000':'#475569',border:'none',cursor:statusForm.label.trim()?'pointer':'default',transition:'all .15s'}}>
+              {statusEdit==='new'?'Create Status':'Save Changes'}
+            </button>
+          </div>
+        </div>
+      </div>}
+
+      {/* ── STATUS PICKER DROPDOWN ── */}
+      {statusPicker&&<>
+        <div style={{position:'fixed',inset:0,zIndex:74}} onClick={()=>setStatusPicker(null)}/>
+        <div style={{position:'fixed',left:Math.min(statusPicker.x,window.innerWidth-180),top:statusPicker.y,zIndex:75,width:170,borderRadius:12,background:'#0f172a',border:'1px solid rgba(255,255,255,0.1)',boxShadow:'0 12px 40px rgba(0,0,0,0.6)',overflow:'hidden',padding:4}} className="fadein">
+          {customStatuses.map(s=>{
+            const isCurrent=statusPicker.type==='task'
+              ?(goals.flatMap(g=>g.tasks).find(t=>t.id===statusPicker.tid)?.status||'open')===s.id
+              :(goals.flatMap(g=>g.tasks).flatMap(t=>t.subtasks||[]).find(sub=>sub.id===statusPicker.sid)?.status||'open')===s.id;
+            return(
+              <button key={s.id} onClick={()=>{
+                if(statusPicker.type==='task') setTaskStatus(statusPicker.gid,statusPicker.tid,s.id);
+                else setSubStatus(statusPicker.gid,statusPicker.tid,statusPicker.sid,s.id);
+                setStatusPicker(null);
+              }} style={{width:'100%',display:'flex',alignItems:'center',gap:9,padding:'8px 10px',borderRadius:8,background:isCurrent?`${s.color}18`:'transparent',border:'none',cursor:'pointer',textAlign:'left',transition:'background .1s'}}>
+                <div style={{width:10,height:10,borderRadius:'50%',background:s.color,flexShrink:0,boxShadow:`0 0 6px ${s.color}80`}}/>
+                <span style={{fontSize:13,fontWeight:700,color:isCurrent?s.color:'#e2e8f0',flex:1}}>{s.label}</span>
+                {isCurrent&&<I n="check" size={10} color={s.color}/>}
+              </button>
+            );
+          })}
+        </div>
+      </>}
 
       {/* ── Demo notice (shown once on first login) ── */}
       {demoNotice&&<div style={{position:'fixed',inset:0,zIndex:70,display:'flex',alignItems:'center',justifyContent:'center',padding:20,background:'rgba(0,0,0,0.75)',backdropFilter:'blur(8px)'}} onClick={()=>setDemoNotice(false)}>
