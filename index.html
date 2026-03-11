@@ -31,6 +31,8 @@ select{-webkit-appearance:none;appearance:none;}
 .fadein{animation:fadeIn .3s ease;}
 .pulse{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite;}
 .sub-row:hover .sub-actions{opacity:1!important;}
+.sub-cube:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.35);}
+.sub-cube:hover .cube-actions{opacity:1!important;}
 input:focus,textarea:focus,select:focus{outline:none;}
 .google-btn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:14px 24px;border-radius:12px;background:#fff;color:#1e293b;font-size:14px;font-weight:700;border:1px solid #e2e8f0;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,0.1);}
 .google-btn:hover{background:#f8fafc;box-shadow:0 4px 16px rgba(0,0,0,0.15);transform:translateY(-1px);}
@@ -1009,9 +1011,9 @@ function App() {
                           </button>
                           {/* Name takes all available width — no overflow, no clamp */}
                           <div style={{flex:1,minWidth:0,overflow:'visible'}}>
-                            <div style={{fontSize:14,fontWeight:700,lineHeight:1.4,wordBreak:'break-word',whiteSpace:'pre-wrap',textDecoration:done?'line-through':'none',opacity:done?0.5:1}}>{task.name}</div>
-                            <div style={{display:'flex',alignItems:'center',gap:6,marginTop:4,flexWrap:'wrap'}}>
-                              <span style={{fontSize:12,fontWeight:700,textTransform:'uppercase',padding:'2px 6px',borderRadius:4,background:'rgba(99,102,241,0.1)',color:'#818cf8'}}>Q{task.quarter}</span>
+                            <div style={{fontSize:14,fontWeight:700,lineHeight:1.5,wordBreak:'break-word',whiteSpace:'normal',textDecoration:done?'line-through':'none',opacity:done?0.5:1}}>{task.name}</div>
+                            <div style={{display:'flex',alignItems:'center',gap:6,marginTop:5,flexWrap:'wrap'}}>
+                              <span style={{fontSize:12,fontWeight:700,textTransform:'uppercase',padding:'2px 7px',borderRadius:5,background:'rgba(99,102,241,0.12)',color:'#818cf8'}}>Q{task.quarter}</span>
                               <span style={{fontSize:12,color:'#64748b',fontWeight:700}}>→ {MONTHS[(task.month||1)-1]}</span>
                             </div>
                           </div>
@@ -1036,48 +1038,63 @@ function App() {
                           <I n={aiLoading===task.id?'refresh':'sparkles'} size={12}/>{aiLoading===task.id?'Generating…':'✨ AI Breakdown'}
                         </button>}
 
-                        {/* Subtask list */}
-                        <div style={{display:'flex',flexDirection:'column',gap:4}}>
+                        {/* Subtask cubes grid */}
+                        {(task.subtasks||[]).length>0&&<div style={{display:'flex',flexWrap:'wrap',gap:8,marginBottom:4}}>
                           {(task.subtasks||[]).map(s=>{
                             const isEditing=editSubM&&editSubM.gid===goal.id&&editSubM.tid===task.id&&editSubM.sid===s.id;
-                            return isEditing?(
-                              <div key={s.id} style={{display:'flex',alignItems:'center',gap:8,padding:'6px 8px',borderRadius:8,background:'rgba(99,102,241,0.08)',border:'1px solid rgba(99,102,241,0.25)',marginBottom:2}}>
-                                <input
-                                  autoFocus
-                                  value={editSubM.name}
-                                  onChange={e=>setEditSubM(p=>({...p,name:e.target.value}))}
-                                  onKeyDown={e=>{
-                                    if(e.key==='Enter'&&editSubM.name.trim()){saveSub(goal.id,task.id,s.id,editSubM.name.trim(),editSubM.month);setEditSubM(null);}
-                                    if(e.key==='Escape')setEditSubM(null);
-                                  }}
-                                  style={{flex:1,background:'none',border:'none',outline:'none',fontSize:13,fontWeight:600,color:'#e2e8f0'}}
-                                />
-                                <select
-                                  value={editSubM.month}
-                                  onChange={e=>setEditSubM(p=>({...p,month:+e.target.value}))}
-                                  style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:6,outline:'none',fontSize:12,fontWeight:700,color:'#94a3b8',cursor:'pointer',padding:'2px 4px'}}>
-                                  {MONTHS.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
-                                </select>
-                                <button onClick={()=>{if(editSubM.name.trim()){saveSub(goal.id,task.id,s.id,editSubM.name.trim(),editSubM.month);setEditSubM(null);}}} style={{background:'rgba(99,102,241,0.2)',border:'none',borderRadius:6,cursor:'pointer',color:'#818cf8',padding:'3px 8px',fontSize:12,fontWeight:700}}>Save</button>
-                                <button onClick={()=>setEditSubM(null)} style={{background:'none',border:'none',cursor:'pointer',color:'#64748b',padding:'2px'}}><I n="x" size={11}/></button>
-                              </div>
-                            ):(
-                              <div key={s.id} style={{display:'flex',alignItems:'flex-start',gap:8,padding:'4px 0',borderRadius:6}} className="sub-row">
-                                <button onClick={()=>toggleSub(goal.id,task.id,s.id)} style={{background:'none',border:'none',cursor:'pointer',flexShrink:0,marginTop:2}}>
-                                  {s.completed?<I n="checkCircle" size={14} color="#34d399"/>:<div style={{width:14,height:14,border:'2px solid #475569',borderRadius:3}}/>}
-                                </button>
-                                <div style={{flex:1,minWidth:0}}>
-                                  <div style={{fontSize:13,fontWeight:500,lineHeight:1.4,wordBreak:'break-word',whiteSpace:'pre-wrap',textDecoration:s.completed?'line-through':'none',opacity:s.completed?0.5:1}}>{s.name}</div>
-                                  <div style={{fontSize:14,color:'#64748b',fontWeight:600,marginTop:1}}>{MONTHS[(s.month||1)-1]}</div>
-                                </div>
-                                <div style={{display:'flex',gap:2,flexShrink:0,marginTop:2,opacity:0}} className="sub-actions">
-                                  <button title="Edit step" onClick={()=>setEditSubM({gid:goal.id,tid:task.id,sid:s.id,name:s.name,month:s.month||1})} style={{background:'none',border:'none',cursor:'pointer',color:'#818cf8',padding:'2px'}}><I n="pen" size={10}/></button>
-                                  <button title="Delete step" onClick={()=>softDelete(`Step "${s.name}"`,()=>delSub(goal.id,task.id,s.id),()=>mutateGoal(goal.id,g=>({...g,tasks:g.tasks.map(t=>t.id!==task.id?t:{...t,subtasks:[...t.subtasks,s]})})))} style={{background:'none',border:'none',cursor:'pointer',color:'#f87171',padding:'2px'}}><I n="x" size={10}/></button>
-                                </div>
+                            const cubeColor = s.completed
+                              ? {bg:'rgba(16,185,129,0.1)',border:'rgba(16,185,129,0.25)',text:'#4ade80',month:'rgba(16,185,129,0.5)',tick:'#10b981'}
+                              : {bg:'rgba(255,255,255,0.04)',border:'rgba(255,255,255,0.1)',text:'#e2e8f0',month:'#64748b',tick:'#334155'};
+                            return (
+                              <div key={s.id} className="sub-cube" style={{position:'relative',borderRadius:12,border:`1.5px solid ${isEditing?'rgba(99,102,241,0.5)':cubeColor.border}`,background:isEditing?'rgba(99,102,241,0.08)':cubeColor.bg,padding:'12px',minWidth:110,maxWidth:180,flex:'1 1 130px',boxSizing:'border-box',transition:'all .15s',cursor:isEditing?'default':'pointer'}}
+                                onClick={()=>!isEditing&&toggleSub(goal.id,task.id,s.id)}>
+                                {isEditing?(
+                                  /* ── Edit mode: inside the cube ── */
+                                  <div style={{display:'flex',flexDirection:'column',gap:8}} onClick={e=>e.stopPropagation()}>
+                                    <textarea
+                                      autoFocus
+                                      value={editSubM.name}
+                                      rows={2}
+                                      onChange={e=>setEditSubM(p=>({...p,name:e.target.value}))}
+                                      onKeyDown={e=>{
+                                        if(e.key==='Enter'&&!e.shiftKey&&editSubM.name.trim()){e.preventDefault();saveSub(goal.id,task.id,s.id,editSubM.name.trim(),editSubM.month);setEditSubM(null);}
+                                        if(e.key==='Escape')setEditSubM(null);
+                                      }}
+                                      style={{width:'100%',background:'none',border:'none',outline:'none',fontSize:13,fontWeight:600,color:'#e2e8f0',resize:'none',lineHeight:1.4,boxSizing:'border-box',padding:0,fontFamily:'inherit'}}
+                                    />
+                                    <div style={{display:'flex',alignItems:'center',gap:6}}>
+                                      <select
+                                        value={editSubM.month}
+                                        onChange={e=>setEditSubM(p=>({...p,month:+e.target.value}))}
+                                        style={{flex:1,background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:6,outline:'none',fontSize:12,fontWeight:700,color:'#94a3b8',cursor:'pointer',padding:'3px 5px'}}>
+                                        {MONTHS.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
+                                      </select>
+                                      <button onClick={()=>{if(editSubM.name.trim()){saveSub(goal.id,task.id,s.id,editSubM.name.trim(),editSubM.month);setEditSubM(null);}}} style={{background:'#4f46e5',border:'none',borderRadius:6,cursor:'pointer',color:'#fff',padding:'4px 8px',fontSize:11,fontWeight:800}}>✓</button>
+                                      <button onClick={()=>setEditSubM(null)} style={{background:'rgba(255,255,255,0.06)',border:'none',borderRadius:6,cursor:'pointer',color:'#64748b',padding:'4px 6px',fontSize:11}}>✕</button>
+                                    </div>
+                                  </div>
+                                ):(
+                                  <>
+                                    {/* Completion tick — top right */}
+                                    <div style={{position:'absolute',top:9,right:9,width:17,height:17,borderRadius:5,border:s.completed?'none':`1.5px solid #334155`,background:s.completed?'#10b981':'transparent',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                                      {s.completed&&<I n="check" size={10} color="#fff"/>}
+                                    </div>
+                                    {/* Name */}
+                                    <div style={{fontSize:13,fontWeight:600,lineHeight:1.45,color:cubeColor.text,wordBreak:'break-word',paddingRight:22,textDecoration:s.completed?'line-through':'none',opacity:s.completed?0.55:1,marginBottom:8}}>{s.name}</div>
+                                    {/* Footer: month + actions */}
+                                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                                      <span style={{fontSize:11,fontWeight:700,color:cubeColor.month,letterSpacing:'0.03em'}}>{MONTHS[(s.month||1)-1]}</span>
+                                      <div className="cube-actions" style={{display:'flex',gap:3,opacity:0,transition:'opacity .15s'}}>
+                                        <button title="Edit" onClick={e=>{e.stopPropagation();setEditSubM({gid:goal.id,tid:task.id,sid:s.id,name:s.name,month:s.month||1});}} style={{background:'rgba(99,102,241,0.18)',border:'none',borderRadius:5,cursor:'pointer',color:'#818cf8',padding:'3px 5px',lineHeight:1}}><I n="pen" size={9}/></button>
+                                        <button title="Delete" onClick={e=>{e.stopPropagation();softDelete(`Step "${s.name}"`,()=>delSub(goal.id,task.id,s.id),()=>mutateGoal(goal.id,g=>({...g,tasks:g.tasks.map(t=>t.id!==task.id?t:{...t,subtasks:[...t.subtasks,s]})})));}} style={{background:'rgba(239,68,68,0.15)',border:'none',borderRadius:5,cursor:'pointer',color:'#f87171',padding:'3px 5px',lineHeight:1}}><I n="x" size={9}/></button>
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             );
                           })}
-                        </div>
+                        </div>}
 
                         {!done&&<div style={{marginTop:8,display:'flex',alignItems:'center',gap:6,padding:'6px 8px',borderRadius:8,border:'1px solid rgba(255,255,255,0.05)',background:'rgba(255,255,255,0.02)'}}>
                           <input style={{flex:1,background:'none',border:'none',outline:'none',fontSize:12,color:text}} placeholder="Add step…" value={(subInputs[task.id]||{}).name||''}
