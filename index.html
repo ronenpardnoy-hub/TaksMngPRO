@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="description" content="TaskMngPRO — IT Team Goal & KPI Manager"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
@@ -46,7 +49,90 @@ tr:hover .kpi-drag-handle{opacity:1!important;}
 .kpi-drag-handle{transition:opacity .15s;}
 .kpi-editable:hover{background:rgba(99,102,241,0.12)!important;outline:1px dashed rgba(99,102,241,0.35);border-radius:3px;}
 .goal-row:hover{background:rgba(255,255,255,0.04)!important;}
-@media(max-width:640px){nav>div{gap:2px;}nav button{padding:8px 10px!important;}}
+
+/* ── MOBILE BASE ── */
+@media(max-width:640px){
+  /* Prevent ALL horizontal overflow */
+  html,body{overflow-x:hidden;width:100%;position:relative;}
+  *{max-width:100%;word-break:break-word;}
+  img,table{max-width:100%;}
+
+  /* Full-width bottom nav — real app tab bar */
+  nav{
+    position:fixed!important;bottom:0!important;left:0!important;right:0!important;
+    transform:none!important;width:100%!important;
+    border-radius:0!important;z-index:50;
+    padding-bottom:env(safe-area-inset-bottom,0px)!important;
+  }
+  nav>div{
+    width:100%!important;border-radius:0!important;
+    padding:0!important;gap:0!important;
+    border-left:none!important;border-right:none!important;border-bottom:none!important;
+    border-top:1px solid rgba(255,255,255,0.08)!important;
+    padding-bottom:env(safe-area-inset-bottom,4px)!important;
+  }
+  nav button{
+    flex:1!important;flex-direction:column!important;
+    gap:3px!important;padding:8px 4px!important;
+    border-radius:0!important;
+    font-size:9px!important;letter-spacing:0!important;
+    align-items:center!important;justify-content:center!important;
+    min-height:52px!important;
+  }
+  nav button span{display:block!important;}
+
+  /* Header compact */
+  header{padding:0 12px!important;height:48px!important;}
+  header h1{font-size:15px!important;}
+
+  /* Main content — full bleed, more bottom padding for tab bar */
+  main{padding:10px 10px 90px!important;max-width:100%!important;}
+
+  /* Stat cards — 2 cols */
+  .stat-grid{grid-template-columns:1fr 1fr!important;}
+
+  /* KPI table — hide on mobile, show card view */
+  .kpi-table-wrap{display:none!important;}
+  .kpi-cards-mobile{display:flex!important;}
+
+  /* KPI inline edit always visible on mobile */
+  .kpi-btns{opacity:1!important;}
+  .kpi-drag-handle{opacity:0.4!important;}
+
+  /* Tasks — full width, no min-width issues */
+  .sub-cube{min-width:0!important;flex:1 1 calc(50% - 6px)!important;max-width:none!important;}
+
+  /* Modal — full screen on mobile */
+  .modal-wrap{padding:0!important;align-items:flex-end!important;}
+  .modal-box{border-radius:20px 20px 0 0!important;max-width:100%!important;width:100%!important;max-height:92vh!important;overflow-y:auto!important;}
+
+  /* Settings — full width */
+  .settings-wrap{max-width:100%!important;}
+
+  /* Charts — constrain */
+  svg{max-width:100%!important;}
+
+  /* Team grid — 1 col */
+  .team-grid{grid-template-columns:1fr!important;}
+
+  /* Dashboard charts row — stack */
+  .charts-row{grid-template-columns:1fr!important;}
+
+  /* Goal row — compact */
+  .goal-name{font-size:13px!important;max-width:180px!important;}
+
+  /* Buttons — larger tap targets */
+  button{min-height:36px;}
+
+  /* Table cells — tighter on mobile */
+  td,th{padding:4px 3px!important;font-size:10px!important;}
+}
+
+/* ── TABLET ── */
+@media(min-width:641px) and (max-width:1024px){
+  .sub-cube{flex:1 1 120px!important;}
+  nav button{padding:8px 10px!important;}
+}
 </style>
 </head>
 <body>
@@ -517,13 +603,18 @@ const P={
   activity:"M22 12h-4l-3 9L9 3l-3 9H2",
   brain:"M9.5 2a3.5 3.5 0 00-3.5 3.5c0 .8.27 1.55.73 2.14A3.5 3.5 0 002 11c0 1.7 1.21 3.12 2.83 3.42A3.5 3.5 0 009.5 18h5a3.5 3.5 0 003.67-3.58A3.5 3.5 0 0021 11a3.5 3.5 0 00-4.23-3.36A3.5 3.5 0 0014.5 2h-5z",
   checkSquare:"M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11",
+  fileText:"M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8",
+  download:"M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3",
+  printer:"M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z",
+  sliders:"M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6",
+  eye:"M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 12a3 3 0 100-6 3 3 0 000 6",
 };
 const I=({n,size=15,color})=><IC d={P[n]||P.x} size={size} color={color||'currentColor'}/>;
 
 // ─── MODAL ────────────────────────────────────────────────────────────────────
 const Modal=({onClose,children,width='max-w-xs'})=>(
-  <div style={{position:'fixed',inset:0,zIndex:50,display:'flex',alignItems:'center',justifyContent:'center',padding:16,background:'rgba(0,0,0,0.75)',backdropFilter:'blur(8px)'}} onClick={onClose}>
-    <div className={`w-full ${width} rounded-2xl p-5 shadow-2xl bg-slate-900 border border-white/10 fadein`} onClick={e=>e.stopPropagation()}>{children}</div>
+  <div className="modal-wrap" style={{position:'fixed',inset:0,zIndex:50,display:'flex',alignItems:'center',justifyContent:'center',padding:16,background:'rgba(0,0,0,0.75)',backdropFilter:'blur(8px)'}} onClick={onClose}>
+    <div className={`modal-box w-full ${width} rounded-2xl p-5 shadow-2xl bg-slate-900 border border-white/10 fadein`} onClick={e=>e.stopPropagation()}>{children}</div>
   </div>
 );
 const MHead=({title,sub,icon,onClose})=>(
@@ -667,6 +758,13 @@ function App() {
          saveMember,deleteMember,addMember,resetAll} = useAppData();
 
   const [view,setView]=useState('dashboard');
+  const [reportCfg,setReportCfg]=useState({
+    title:'IT Department Report', period:'Q1 2026',
+    sections:{executive:true,kpis:true,goals:true,team:true},
+    kpiCols:{plan:true,actual:true,ytd:true,trend:true,notes:false},
+    highlight:'good', // 'all'|'good'|'bad'|'none'
+  });
+  const [reportPreview,setReportPreview]=useState(false);
   const [dm,setDm]=useState(true);
   const [priv,setPriv]=useState(true);
   const [locked,setLocked]=useState(false);
@@ -934,9 +1032,7 @@ KPI EXTRACTION RULES — FOLLOW EXACTLY:
     setImportStep('importing');
     await new Promise(r=>setTimeout(r,300));
     const nameToId={};
-    // Pre-seed from existing team members
     team.forEach(m=>{nameToId[m.name.trim().toLowerCase()]=m.id;});
-    // Collect all unique assignee names first, then add missing ones once
     const newMembers=[];
     (importPrev.goals||[]).forEach(g=>(g.tasks||[]).forEach(t=>(t.assignees||[]).forEach(a=>{
       if(typeof a==='string'&&a.trim()){
@@ -948,10 +1044,52 @@ KPI EXTRACTION RULES — FOLLOW EXACTLY:
         }
       }
     })));
-    // Add only truly new members (not already in team)
     newMembers.forEach(m=>addMember(m));
-    (importPrev.goals||[]).forEach(g=>{const goal={id:`g${Date.now()}_${uid6()}`,name:g.name||'New Goal',quarter:+g.quarter||1,tasks:(g.tasks||[]).map(t=>{const ts=normalizeStatus(t.status||t.completed);return{id:`tk${Date.now()}_${uid6()}`,name:t.name||'Task',quarter:+t.quarter||+g.quarter||1,month:+t.month||1,status:ts,completed:ts==='done',assigneeIds:(t.assignees||[]).map(a=>nameToId[a?.trim?.().toLowerCase()]).filter(Boolean),subtasks:(t.subtasks||[]).map(s=>{const ss=normalizeStatus(typeof s==='object'?(s.status||s.completed):false);return{id:`s${Date.now()}_${uid6()}`,name:typeof s==='string'?s:s.name||'Step',month:typeof s==='object'?+s.month||1:1,status:ss,completed:ss==='done'};})};})};addGoal(goal);setExpanded(p=>({...p,[goal.id]:true}));});
-    (importPrev.kpis||[]).forEach(k=>addKpi(sanitizeKpi({id:`k${Date.now()}_${uid6()}`,category:k.category||'Imported',name:k.name||'KPI',owner:k.owner||'',baseline:k.baseline??'',goal:k.goal??'',unit:k.unit||'%',type:k.type==='lower'?'lower':'higher',targets:k.targets||{},actuals:k.actuals||{},details:k.details||{}})));
+
+    // Build lookup maps
+    const existingGoalNames=new Set(goals.map(g=>g.name.trim().toLowerCase()));
+    const existingKpiByName=Object.fromEntries(kpis.map(k=>[k.name.trim().toLowerCase(),k]));
+
+    // Import new goals only
+    (importPrev.goals||[]).filter(g=>!existingGoalNames.has((g.name||'').trim().toLowerCase())).forEach(g=>{
+      const goal={id:`g${Date.now()}_${uid6()}`,name:g.name||'New Goal',quarter:+g.quarter||1,tasks:(g.tasks||[]).map(t=>{const ts=normalizeStatus(t.status||t.completed);return{id:`tk${Date.now()}_${uid6()}`,name:t.name||'Task',quarter:+t.quarter||+g.quarter||1,month:+t.month||1,status:ts,completed:ts==='done',assigneeIds:(t.assignees||[]).map(a=>nameToId[a?.trim?.().toLowerCase()]).filter(Boolean),subtasks:(t.subtasks||[]).map(s=>{const ss=normalizeStatus(typeof s==='object'?(s.status||s.completed):false);return{id:`s${Date.now()}_${uid6()}`,name:typeof s==='string'?s:s.name||'Step',month:typeof s==='object'?+s.month||1:1,status:ss,completed:ss==='done'};})};})};
+      addGoal(goal);setExpanded(p=>({...p,[goal.id]:true}));
+    });
+
+    // For KPIs: add new ones, merge monthly data into existing ones
+    (importPrev.kpis||[]).forEach(k=>{
+      const nameKey=(k.name||'').trim().toLowerCase();
+      const existing=existingKpiByName[nameKey];
+      if(!existing){
+        // Brand new KPI — add it
+        addKpi(sanitizeKpi({id:`k${Date.now()}_${uid6()}`,category:k.category||'Imported',name:k.name||'KPI',owner:k.owner||'',baseline:k.baseline??'',goal:k.goal??'',unit:k.unit||'%',type:k.type==='lower'?'lower':'higher',targets:k.targets||{},actuals:k.actuals||{},details:k.details||{}}));
+      } else {
+        // Existing KPI — merge only months that are currently empty
+        const newTargets={};
+        const newActuals={};
+        const newDetails={};
+        let changed=false;
+        for(let m=1;m<=12;m++){
+          const ms=String(m);
+          const tVal=stripNum((k.targets||{})[ms]??( k.targets||{})[m]);
+          const aVal=stripNum((k.actuals||{})[ms]??( k.actuals||{})[m]);
+          const dVal=(k.details||{})[ms]||(k.details||{})[m];
+          // Only fill months that don't already have data
+          if(tVal!==undefined&&(existing.targets||{})[m]==null){newTargets[m]=tVal;changed=true;}
+          if(aVal!==undefined&&(existing.actuals||{})[m]==null){newActuals[m]=aVal;changed=true;}
+          if(dVal&&!(existing.details||{})[m]){newDetails[m]=dVal;changed=true;}
+        }
+        if(changed){
+          mutateKpi(existing.id,prev=>({
+            ...prev,
+            targets:{...prev.targets,...newTargets},
+            actuals:{...prev.actuals,...newActuals},
+            details:{...prev.details,...newDetails},
+          }));
+        }
+      }
+    });
+
     setImportM(false);setImportTxt('');setImportPrev(null);setImportStep('input');setFileName('');
   };
 
@@ -1041,7 +1179,7 @@ KPI EXTRACTION RULES — FOLLOW EXACTLY:
 
         {/* ══ DASHBOARD ══ */}
         {view==='dashboard'&&<div className="fadein" style={{display:'flex',flexDirection:'column',gap:20}}>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:12}}>
+          <div className="stat-grid" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:12}}>
             {[{label:'Annual Goals',value:goals.length,icon:'target',color:'#6366f1'},{label:'Total Tasks',value:allTasks.length,sub:`${doneCnt} done`,icon:'checkSquare',color:'#3b82f6'},{label:'Overall Progress',value:`${prog}%`,icon:'activity',color:'#8b5cf6'},{label:'Team Members',value:team.length,icon:'team',color:'#10b981'}].map((c,i)=>(
               <div key={i} style={{...card,borderRadius:16,padding:16}}>
                 <div style={{width:32,height:32,borderRadius:10,background:`${c.color}18`,border:`1px solid ${c.color}30`,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:12}}><I n={c.icon} size={15} color={c.color}/></div>
@@ -1066,7 +1204,7 @@ KPI EXTRACTION RULES — FOLLOW EXACTLY:
 
           {/* KPI table */}
           <div style={{...card,borderRadius:16,overflow:'hidden'}}>
-            <div style={{overflowX:'auto',WebkitOverflowScrolling:'touch'}}>
+            <div className="kpi-table-wrap" style={{overflowX:'auto',WebkitOverflowScrolling:'touch'}}>
               <table style={{width:'100%',borderCollapse:'collapse',background:dm?'#080c14':'#fff',fontSize:12,minWidth:900}}>
                 <thead>
                   <tr style={{background:dm?'rgba(15,23,42,0.8)':'#f8fafc',borderBottom:dm?'1px solid rgba(255,255,255,0.05)':'1px solid #e2e8f0'}}>
@@ -1183,10 +1321,51 @@ KPI EXTRACTION RULES — FOLLOW EXACTLY:
                 </tbody>
               </table>
             </div>
+            {/* ── MOBILE KPI CARDS (hidden on desktop) ── */}
+            <div className="kpi-cards-mobile" style={{display:'none',flexDirection:'column',gap:1}}>
+              {kpis.map(kpi=>{
+                const ytd=getYTD(kpi),trend=getTrend(kpi);
+                return(
+                  <div key={kpi.id} style={{padding:'12px 14px',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+                    <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:8,gap:8}}>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:11,fontWeight:800,color:'#34d399',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:2}}>{kpi.category}</div>
+                        <div style={{fontSize:13,fontWeight:700,lineHeight:1.3}}>{kpi.name}</div>
+                        {kpi.owner&&<div style={{fontSize:11,color:'#64748b',marginTop:2}}>{kpi.owner}</div>}
+                      </div>
+                      <div style={{textAlign:'right',flexShrink:0}}>
+                        <div style={{fontSize:18,fontWeight:900,color:ytd!=null?'#34d399':'#475569',lineHeight:1}}>{ytd!=null?`${ytd}${kpi.unit}`:'—'}</div>
+                        <div style={{fontSize:9,color:'#64748b',marginTop:1}}>YTD avg</div>
+                        {trend!==null&&<TrendBadge value={trend} unit={kpi.unit}/>}
+                      </div>
+                    </div>
+                    {/* Month actuals row — scrollable */}
+                    <div style={{overflowX:'auto',WebkitOverflowScrolling:'touch',marginTop:4,paddingBottom:4}}>
+                      <div style={{display:'flex',gap:4,minWidth:'max-content'}}>
+                        {MONTHS.map((m,mi)=>{
+                          const a=(kpi.actuals||{})[mi+1];
+                          const t=(kpi.targets||{})[mi+1];
+                          const st=getStatus(kpi,mi+1);
+                          const bg=st==='good'?'rgba(16,185,129,0.15)':st==='bad'?'rgba(239,68,68,0.15)':'rgba(255,255,255,0.05)';
+                          const col=st==='good'?'#34d399':st==='bad'?'#f87171':'#475569';
+                          return(
+                            <div key={mi} onClick={()=>openKpiM(kpi,mi+1)} style={{minWidth:38,borderRadius:6,background:bg,padding:'4px 3px',textAlign:'center',cursor:'pointer'}}>
+                              <div style={{fontSize:8,fontWeight:700,color:'#64748b',marginBottom:2}}>{m}</div>
+                              <div style={{fontSize:10,fontWeight:900,color:col}}>{a!=null?`${a}${kpi.unit}`:'—'}</div>
+                              {t!=null&&<div style={{fontSize:8,color:'#475569'}}>{t}{kpi.unit}</div>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Charts */}
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:16}}>
+          <div className="charts-row" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:16}}>
             <div style={{...card,borderRadius:16,padding:16}}>
               <div style={{fontSize:12,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:'#64748b',marginBottom:12}}>Tasks by Quarter</div>
               <div style={{height:160}}>
@@ -1425,7 +1604,7 @@ KPI EXTRACTION RULES — FOLLOW EXACTLY:
             <h2 style={{fontSize:15,fontWeight:900,letterSpacing:'-0.02em'}}>Team Members</h2>
             <button onClick={()=>setAddMemM(true)} style={{display:'flex',alignItems:'center',gap:6,padding:'8px 14px',borderRadius:10,fontSize:13,fontWeight:900,background:'#059669',color:'#fff',border:'none',cursor:'pointer',boxShadow:'0 4px 12px rgba(5,150,105,0.3)'}}><I n="userPlus" size={12}/> Add Member</button>
           </div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:16}}>
+          <div className="team-grid" style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:16}}>
             {team.map(m=>{
               const mt=allTasks.filter(t=>t.assigneeIds?.includes(m.id));
               const md=mt.filter(t=>t.completed||getTaskProgress(t)===100);
@@ -1485,6 +1664,261 @@ KPI EXTRACTION RULES — FOLLOW EXACTLY:
         </div>}
 
         {/* ══ SETTINGS ══ */}
+        {view==='reports'&&<div className="fadein" style={{display:'flex',flexDirection:'column',gap:20}}>{(()=>{
+          // ── computed helpers ──
+          const goodKpis=kpis.filter(k=>[1,2,3,4,5,6,7,8,9,10,11,12].some(m=>getStatus(k,m)==='good'));
+          const badKpis=kpis.filter(k=>[1,2,3,4,5,6,7,8,9,10,11,12].some(m=>getStatus(k,m)==='bad'));
+          const atRisk=badKpis.length;
+          const onTrack=goodKpis.length;
+          const blockedTasks=allTasks.filter(t=>t.status==='blocked');
+          const inProgressTasks=allTasks.filter(t=>t.status==='in-progress');
+          const cancelledTasks=allTasks.filter(t=>t.status==='cancelled');
+          const completedTasks=allTasks.filter(t=>t.status==='done'||t.completed);
+          const topMember=team.map(m=>{const mt=allTasks.filter(t=>t.assigneeIds?.includes(m.id));return{...m,total:mt.length,done:mt.filter(t=>t.status==='done'||t.completed).length};}).sort((a,b)=>b.done-a.done)[0];
+          const cfg=reportCfg;
+
+          const Section=({title,icon,color,children})=>(
+            <div style={{...card,borderRadius:16,overflow:'hidden'}}>
+              <div style={{padding:'14px 18px',borderBottom:`1px solid rgba(255,255,255,0.05)`,background:`linear-gradient(135deg,${color}10,transparent)`,display:'flex',alignItems:'center',gap:10}}>
+                <div style={{width:30,height:30,borderRadius:10,background:`${color}20`,border:`1px solid ${color}30`,display:'flex',alignItems:'center',justifyContent:'center'}}><I n={icon} size={13} color={color}/></div>
+                <h3 style={{fontSize:14,fontWeight:900,letterSpacing:'-0.01em'}}>{title}</h3>
+              </div>
+              <div style={{padding:18}}>{children}</div>
+            </div>
+          );
+
+          const StatPill=({label,value,color,bg})=>(
+            <div style={{flex:'1 1 120px',borderRadius:12,background:bg||'rgba(255,255,255,0.03)',border:`1px solid ${color}25`,padding:'12px 14px'}}>
+              <div style={{fontSize:22,fontWeight:900,color,marginBottom:2}}>{value}</div>
+              <div style={{fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.06em',color:'#64748b'}}>{label}</div>
+            </div>
+          );
+
+          const Toggle=({label,val,onToggle})=>(
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+              <span style={{fontSize:13,fontWeight:600}}>{label}</span>
+              <button onClick={onToggle} style={{width:36,height:18,borderRadius:9,position:'relative',background:val?'#4f46e5':'rgba(255,255,255,0.1)',border:'none',cursor:'pointer',transition:'background .15s',flexShrink:0}}>
+                <div style={{width:14,height:14,background:'#fff',borderRadius:'50%',position:'absolute',top:2,left:val?20:2,transition:'left .15s',boxShadow:'0 1px 3px rgba(0,0,0,0.3)'}}/>
+              </button>
+            </div>
+          );
+
+          return <>
+            {/* ── Header ── */}
+            <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
+              <div>
+                <h2 style={{fontSize:20,fontWeight:900,letterSpacing:'-0.02em',marginBottom:4}}>{cfg.title}</h2>
+                <div style={{fontSize:13,color:'#64748b',fontWeight:600}}>Period: {cfg.period} · Generated {new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>
+              </div>
+              <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                <button onClick={()=>window.print()} style={{display:'flex',alignItems:'center',gap:6,padding:'8px 14px',borderRadius:10,fontSize:13,fontWeight:800,background:'rgba(255,255,255,0.06)',color:'#94a3b8',border:'1px solid rgba(255,255,255,0.1)',cursor:'pointer'}}>
+                  <I n="printer" size={13}/> Print / PDF
+                </button>
+              </div>
+            </div>
+
+            {/* ── Report Configurator ── */}
+            <div style={{...card,borderRadius:16,padding:18}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14}}>
+                <I n="sliders" size={14} color="#f59e0b"/>
+                <h3 style={{fontSize:13,fontWeight:900}}>Customize Report</h3>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:20}}>
+                {/* Title & Period */}
+                <div>
+                  <div style={{fontSize:11,fontWeight:800,textTransform:'uppercase',letterSpacing:'0.06em',color:'#64748b',marginBottom:10}}>Report Info</div>
+                  <input value={cfg.title} onChange={e=>setReportCfg(p=>({...p,title:e.target.value}))} placeholder="Report title…" style={{width:'100%',boxSizing:'border-box',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'7px 10px',fontSize:12,fontWeight:600,color:'#e2e8f0',outline:'none',marginBottom:8}}/>
+                  <input value={cfg.period} onChange={e=>setReportCfg(p=>({...p,period:e.target.value}))} placeholder="Period (e.g. Q1 2026)…" style={{width:'100%',boxSizing:'border-box',background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:8,padding:'7px 10px',fontSize:12,fontWeight:600,color:'#e2e8f0',outline:'none'}}/>
+                </div>
+                {/* Sections */}
+                <div>
+                  <div style={{fontSize:11,fontWeight:800,textTransform:'uppercase',letterSpacing:'0.06em',color:'#64748b',marginBottom:10}}>Sections</div>
+                  <Toggle label="Executive Summary" val={cfg.sections.executive} onToggle={()=>setReportCfg(p=>({...p,sections:{...p.sections,executive:!p.sections.executive}}))}/>
+                  <Toggle label="KPI Scorecard" val={cfg.sections.kpis} onToggle={()=>setReportCfg(p=>({...p,sections:{...p.sections,kpis:!p.sections.kpis}}))}/>
+                  <Toggle label="Goals & Tasks" val={cfg.sections.goals} onToggle={()=>setReportCfg(p=>({...p,sections:{...p.sections,goals:!p.sections.goals}}))}/>
+                  <Toggle label="Team Performance" val={cfg.sections.team} onToggle={()=>setReportCfg(p=>({...p,sections:{...p.sections,team:!p.sections.team}}))}/>
+                </div>
+                {/* KPI columns */}
+                <div>
+                  <div style={{fontSize:11,fontWeight:800,textTransform:'uppercase',letterSpacing:'0.06em',color:'#64748b',marginBottom:10}}>KPI Columns</div>
+                  <Toggle label="Plan targets" val={cfg.kpiCols.plan} onToggle={()=>setReportCfg(p=>({...p,kpiCols:{...p.kpiCols,plan:!p.kpiCols.plan}}))}/>
+                  <Toggle label="Actuals" val={cfg.kpiCols.actual} onToggle={()=>setReportCfg(p=>({...p,kpiCols:{...p.kpiCols,actual:!p.kpiCols.actual}}))}/>
+                  <Toggle label="YTD Average" val={cfg.kpiCols.ytd} onToggle={()=>setReportCfg(p=>({...p,kpiCols:{...p.kpiCols,ytd:!p.kpiCols.ytd}}))}/>
+                  <Toggle label="Trend" val={cfg.kpiCols.trend} onToggle={()=>setReportCfg(p=>({...p,kpiCols:{...p.kpiCols,trend:!p.kpiCols.trend}}))}/>
+                  <Toggle label="Notes row" val={cfg.kpiCols.notes} onToggle={()=>setReportCfg(p=>({...p,kpiCols:{...p.kpiCols,notes:!p.kpiCols.notes}}))}/>
+                </div>
+                {/* Highlighting */}
+                <div>
+                  <div style={{fontSize:11,fontWeight:800,textTransform:'uppercase',letterSpacing:'0.06em',color:'#64748b',marginBottom:10}}>Cell Highlighting</div>
+                  {[{id:'good',label:'On-track cells only',color:'#10b981'},{id:'bad',label:'At-risk cells only',color:'#ef4444'},{id:'all',label:'Good & bad cells',color:'#6366f1'},{id:'none',label:'No highlighting',color:'#64748b'}].map(opt=>(
+                    <button key={opt.id} onClick={()=>setReportCfg(p=>({...p,highlight:opt.id}))} style={{display:'flex',alignItems:'center',gap:8,width:'100%',padding:'6px 0',background:'none',border:'none',cursor:'pointer',textAlign:'left',marginBottom:2}}>
+                      <div style={{width:14,height:14,borderRadius:'50%',border:`2px solid ${opt.color}`,background:cfg.highlight===opt.id?opt.color:'transparent',flexShrink:0,transition:'background .15s'}}/>
+                      <span style={{fontSize:12,fontWeight:600,color:cfg.highlight===opt.id?'#e2e8f0':'#64748b'}}>{opt.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ── EXECUTIVE SUMMARY ── */}
+            {cfg.sections.executive&&<Section title="Executive Summary" icon="activity" color="#6366f1">
+              <div style={{display:'flex',flexWrap:'wrap',gap:10,marginBottom:16}}>
+                <StatPill label="Overall Progress" value={`${prog}%`} color="#6366f1" bg="rgba(99,102,241,0.08)"/>
+                <StatPill label="Goals" value={goals.length} color="#3b82f6" bg="rgba(59,130,246,0.08)"/>
+                <StatPill label="Tasks Done" value={`${completedTasks.length}/${allTasks.length}`} color="#10b981" bg="rgba(16,185,129,0.08)"/>
+                <StatPill label="KPIs On-Track" value={onTrack} color="#10b981" bg="rgba(16,185,129,0.08)"/>
+                <StatPill label="KPIs At-Risk" value={atRisk} color="#ef4444" bg="rgba(239,68,68,0.08)"/>
+                <StatPill label="Blocked Tasks" value={blockedTasks.length} color="#f97316" bg="rgba(249,115,22,0.08)"/>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:12}}>
+                {/* Highlights */}
+                <div style={{borderRadius:12,background:'rgba(16,185,129,0.06)',border:'1px solid rgba(16,185,129,0.15)',padding:14}}>
+                  <div style={{fontSize:12,fontWeight:900,color:'#34d399',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:10}}>✓ Highlights</div>
+                  {completedTasks.slice(0,4).map(t=><div key={t.id} style={{fontSize:12,color:'#94a3b8',padding:'4px 0',borderBottom:'1px solid rgba(255,255,255,0.04)',display:'flex',alignItems:'center',gap:6}}><div style={{width:5,height:5,borderRadius:'50%',background:'#10b981',flexShrink:0}}/>{t.name}</div>)}
+                  {completedTasks.length===0&&<div style={{fontSize:12,color:'#475569'}}>No completed tasks yet</div>}
+                </div>
+                {/* Risks */}
+                <div style={{borderRadius:12,background:'rgba(239,68,68,0.06)',border:'1px solid rgba(239,68,68,0.15)',padding:14}}>
+                  <div style={{fontSize:12,fontWeight:900,color:'#f87171',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:10}}>⚠ Risks & Blockers</div>
+                  {[...blockedTasks,...badKpis.slice(0,2)].slice(0,4).map((item,i)=><div key={i} style={{fontSize:12,color:'#94a3b8',padding:'4px 0',borderBottom:'1px solid rgba(255,255,255,0.04)',display:'flex',alignItems:'center',gap:6}}><div style={{width:5,height:5,borderRadius:'50%',background:'#ef4444',flexShrink:0}}/>{item.name}</div>)}
+                  {blockedTasks.length===0&&badKpis.length===0&&<div style={{fontSize:12,color:'#475569'}}>No risks identified</div>}
+                </div>
+                {/* In Progress */}
+                <div style={{borderRadius:12,background:'rgba(245,158,11,0.06)',border:'1px solid rgba(245,158,11,0.15)',padding:14}}>
+                  <div style={{fontSize:12,fontWeight:900,color:'#fcd34d',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:10}}>⚡ In Progress</div>
+                  {inProgressTasks.slice(0,4).map(t=><div key={t.id} style={{fontSize:12,color:'#94a3b8',padding:'4px 0',borderBottom:'1px solid rgba(255,255,255,0.04)',display:'flex',alignItems:'center',gap:6}}><div style={{width:5,height:5,borderRadius:'50%',background:'#f59e0b',flexShrink:0}}/>{t.name}</div>)}
+                  {inProgressTasks.length===0&&<div style={{fontSize:12,color:'#475569'}}>No tasks in progress</div>}
+                </div>
+              </div>
+            </Section>}
+
+            {/* ── KPI SCORECARD ── */}
+            {cfg.sections.kpis&&<Section title="KPI Scorecard" icon="barChart" color="#3b82f6">
+              <div style={{overflowX:'auto'}}>
+                <table style={{width:'100%',borderCollapse:'collapse',fontSize:12}}>
+                  <thead>
+                    <tr style={{background:'rgba(255,255,255,0.02)'}}>
+                      {['Category','KPI Name','Owner','Baseline','Goal',cfg.kpiCols.ytd&&'YTD',cfg.kpiCols.trend&&'Trend',...MONTHS.map(m=>m)].filter(Boolean).map((h,i)=>(
+                        <th key={i} style={{padding:'8px 6px',fontSize:10,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',color:'#64748b',borderBottom:'2px solid rgba(255,255,255,0.06)',textAlign:'center',whiteSpace:'nowrap'}}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {kpis.map(kpi=>{
+                      const ytd=getYTD(kpi),trend=getTrend(kpi);
+                      const shouldHL=(st)=>(cfg.highlight==='all'&&(st==='good'||st==='bad'))||(cfg.highlight==='good'&&st==='good')||(cfg.highlight==='bad'&&st==='bad');
+                      return(
+                        <React.Fragment key={kpi.id}>
+                          {cfg.kpiCols.plan&&<tr style={{borderTop:'1px solid rgba(255,255,255,0.04)'}}>
+                            <td rowSpan={cfg.kpiCols.notes?3:cfg.kpiCols.actual?2:1} style={{padding:'6px 8px',fontWeight:900,fontSize:11,color:'#34d399',textTransform:'uppercase',background:'rgba(16,185,129,0.05)',borderRight:'1px solid rgba(255,255,255,0.04)',textAlign:'center'}}>{kpi.category}</td>
+                            <td rowSpan={cfg.kpiCols.notes?3:cfg.kpiCols.actual?2:1} style={{padding:'6px 8px',fontWeight:700,minWidth:140,borderRight:'1px solid rgba(255,255,255,0.04)'}}>{kpi.name}</td>
+                            <td rowSpan={cfg.kpiCols.notes?3:cfg.kpiCols.actual?2:1} style={{padding:'6px 4px',textAlign:'center',color:'#94a3b8',borderRight:'1px solid rgba(255,255,255,0.04)'}}>{kpi.owner?.split(' ')[0]||'—'}</td>
+                            <td rowSpan={cfg.kpiCols.notes?3:cfg.kpiCols.actual?2:1} style={{padding:'6px 4px',textAlign:'center',color:'#64748b',fontWeight:700,borderRight:'1px solid rgba(255,255,255,0.04)'}}>{kpi.baseline}{kpi.unit}</td>
+                            <td rowSpan={cfg.kpiCols.notes?3:cfg.kpiCols.actual?2:1} style={{padding:'6px 4px',textAlign:'center',color:'#818cf8',fontWeight:900,borderRight:'1px solid rgba(255,255,255,0.04)'}}>{kpi.goal}{kpi.unit}</td>
+                            {cfg.kpiCols.ytd&&<td rowSpan={cfg.kpiCols.notes?3:cfg.kpiCols.actual?2:1} style={{padding:'6px 4px',textAlign:'center',fontWeight:900,color:ytd!==null?'#34d399':'#475569',borderRight:'1px solid rgba(255,255,255,0.04)'}}>{ytd!==null?`${ytd}${kpi.unit}`:'—'}</td>}
+                            {cfg.kpiCols.trend&&<td rowSpan={cfg.kpiCols.notes?3:cfg.kpiCols.actual?2:1} style={{padding:'6px 4px',textAlign:'center',borderRight:'1px solid rgba(255,255,255,0.04)'}}><TrendBadge value={trend} unit={kpi.unit}/></td>}
+                            <td style={{padding:'3px 4px',fontSize:10,fontWeight:800,color:'#475569',background:'rgba(255,255,255,0.02)',textAlign:'center'}}>PLAN</td>
+                            {MONTHS.map((_,mi)=>{const v=(kpi.targets||{})[mi+1];return<td key={mi} style={{padding:'3px 2px',textAlign:'center',color:'#94a3b8',minWidth:32,fontSize:11}}>{v!==null&&v!==undefined?`${v}${kpi.unit}`:''}</td>;})}
+                          </tr>}
+                          {cfg.kpiCols.actual&&<tr style={{borderTop:'1px solid rgba(255,255,255,0.04)'}}>
+                            {!cfg.kpiCols.plan&&<><td style={{padding:'6px 8px',fontWeight:900,fontSize:11,color:'#34d399',textTransform:'uppercase',background:'rgba(16,185,129,0.05)',borderRight:'1px solid rgba(255,255,255,0.04)',textAlign:'center'}}>{kpi.category}</td><td style={{padding:'6px 8px',fontWeight:700,minWidth:140,borderRight:'1px solid rgba(255,255,255,0.04)'}}>{kpi.name}</td><td style={{padding:'6px 4px',textAlign:'center',color:'#94a3b8',borderRight:'1px solid rgba(255,255,255,0.04)'}}>{kpi.owner?.split(' ')[0]||'—'}</td><td style={{padding:'6px 4px',textAlign:'center',color:'#64748b',fontWeight:700,borderRight:'1px solid rgba(255,255,255,0.04)'}}>{kpi.baseline}{kpi.unit}</td><td style={{padding:'6px 4px',textAlign:'center',color:'#818cf8',fontWeight:900,borderRight:'1px solid rgba(255,255,255,0.04)'}}>{kpi.goal}{kpi.unit}</td>{cfg.kpiCols.ytd&&<td style={{padding:'6px 4px',textAlign:'center',fontWeight:900,color:ytd!==null?'#34d399':'#475569',borderRight:'1px solid rgba(255,255,255,0.04)'}}>{ytd!==null?`${ytd}${kpi.unit}`:'—'}</td>}{cfg.kpiCols.trend&&<td style={{padding:'6px 4px',textAlign:'center',borderRight:'1px solid rgba(255,255,255,0.04)'}}><TrendBadge value={trend} unit={kpi.unit}/></td>}</>}
+                            <td style={{padding:'3px 4px',fontSize:10,fontWeight:800,color:'#475569',background:'rgba(255,255,255,0.02)',textAlign:'center'}}>ACT</td>
+                            {MONTHS.map((_,mi)=>{const st=getStatus(kpi,mi+1),a=(kpi.actuals||{})[mi+1];const hl=shouldHL(st);const cc=hl&&st==='good'?{background:'#10b981',color:'#fff'}:hl&&st==='bad'?{background:'#ef4444',color:'#fff'}:{color:'#94a3b8'};return<td key={mi} style={{padding:'3px 2px',textAlign:'center',minWidth:32,fontSize:11,fontWeight:hl?900:600,borderRadius:2,...cc}}>{a!==null&&a!==undefined&&a!==''?`${a}${kpi.unit}`:'—'}</td>;})}
+                          </tr>}
+                          {cfg.kpiCols.notes&&<tr style={{borderTop:'1px solid rgba(255,255,255,0.04)'}}>
+                            {!cfg.kpiCols.plan&&!cfg.kpiCols.actual&&<><td style={{padding:'6px 8px',fontWeight:900,fontSize:11,color:'#34d399',textTransform:'uppercase',background:'rgba(16,185,129,0.05)',borderRight:'1px solid rgba(255,255,255,0.04)',textAlign:'center'}}>{kpi.category}</td><td style={{padding:'6px 8px',fontWeight:700,minWidth:140,borderRight:'1px solid rgba(255,255,255,0.04)'}}>{kpi.name}</td><td colSpan={3+( cfg.kpiCols.ytd?1:0)+(cfg.kpiCols.trend?1:0)} style={{borderRight:'1px solid rgba(255,255,255,0.04)'}}/></>}
+                            <td style={{padding:'3px 4px',fontSize:10,fontWeight:800,color:'#475569',background:'rgba(255,255,255,0.02)',textAlign:'center'}}>NOTE</td>
+                            {MONTHS.map((_,mi)=><td key={mi} style={{padding:'3px 2px',textAlign:'center',fontSize:11,color:'#64748b',minWidth:32}}>{(kpi.details||{})[mi+1]||''}</td>)}
+                          </tr>}
+                        </React.Fragment>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Section>}
+
+            {/* ── GOALS & TASKS ── */}
+            {cfg.sections.goals&&<Section title="Goals & Tasks Report" icon="target" color="#8b5cf6">
+              <div style={{display:'flex',flexWrap:'wrap',gap:10,marginBottom:16}}>
+                <StatPill label="Total Goals" value={goals.length} color="#6366f1"/>
+                <StatPill label="Total Tasks" value={allTasks.length} color="#3b82f6"/>
+                <StatPill label="Completed" value={completedTasks.length} color="#10b981"/>
+                <StatPill label="In Progress" value={inProgressTasks.length} color="#f59e0b"/>
+                <StatPill label="Blocked" value={blockedTasks.length} color="#ef4444"/>
+                <StatPill label="Cancelled" value={cancelledTasks.length} color="#6366f1"/>
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:12}}>
+                {goals.map(goal=>{
+                  const gp=getGoalProgress(goal);
+                  const gTasks=goal.tasks||[];
+                  const gDone=gTasks.filter(t=>t.status==='done'||t.completed).length;
+                  return(
+                    <div key={goal.id} style={{borderRadius:12,border:'1px solid rgba(255,255,255,0.06)',background:'rgba(255,255,255,0.02)',padding:14}}>
+                      <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
+                        <Ring value={gp} size={32} stroke={3}/>
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:13,fontWeight:900}}>{goal.name}</div>
+                          <div style={{fontSize:11,color:'#64748b',marginTop:2}}>Target Q{goal.quarter} · {gDone}/{gTasks.length} tasks done</div>
+                        </div>
+                        <div style={{fontSize:18,fontWeight:900,color:gp===100?'#10b981':gp>50?'#f59e0b':'#64748b'}}>{gp}%</div>
+                      </div>
+                      <div style={{display:'flex',flexDirection:'column',gap:4}}>
+                        {gTasks.map(t=>{
+                          const tp=getTaskProgress(t);
+                          const tst=t.status||(t.completed?'done':'open');
+                          const sc=TASK_STATUSES[tst]||Object.values(TASK_STATUSES)[0];
+                          return(
+                            <div key={t.id} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 8px',borderRadius:8,background:'rgba(255,255,255,0.02)'}}>
+                              <div style={{width:8,height:8,borderRadius:'50%',background:sc.color,flexShrink:0}}/>
+                              <span style={{flex:1,fontSize:12,color:'#cbd5e1',textDecoration:tst==='done'||tst==='cancelled'?'line-through':'none',opacity:tst==='cancelled'?0.5:1}}>{t.name}</span>
+                              <span style={{fontSize:10,fontWeight:800,textTransform:'uppercase',padding:'1px 6px',borderRadius:4,background:sc.bg,color:sc.color,border:`1px solid ${sc.border}`,flexShrink:0}}>{sc.label}</span>
+                              {t.subtasks?.length>0&&<span style={{fontSize:10,color:'#475569',flexShrink:0}}>{tp}%</span>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Section>}
+
+            {/* ── TEAM PERFORMANCE ── */}
+            {cfg.sections.team&&<Section title="Team Performance" icon="team" color="#10b981">
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:12}}>
+                {team.map(m=>{
+                  const mt=allTasks.filter(t=>t.assigneeIds?.includes(m.id));
+                  const done=mt.filter(t=>t.status==='done'||t.completed).length;
+                  const inProg=mt.filter(t=>t.status==='in-progress').length;
+                  const blocked=mt.filter(t=>t.status==='blocked').length;
+                  const pct=mt.length?Math.round(done/mt.length*100):0;
+                  return(
+                    <div key={m.id} style={{borderRadius:12,border:'1px solid rgba(255,255,255,0.06)',background:'rgba(255,255,255,0.02)',padding:14}}>
+                      <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
+                        <Avatar name={m.name}/>
+                        <div>
+                          <div style={{fontSize:12,fontWeight:900}}>{m.name}</div>
+                          <div style={{fontSize:11,color:'#64748b'}}>{m.role||'—'}</div>
+                        </div>
+                      </div>
+                      <div style={{height:4,borderRadius:4,background:'rgba(255,255,255,0.06)',marginBottom:8,overflow:'hidden'}}>
+                        <div style={{height:'100%',width:`${pct}%`,background:pct===100?'#10b981':pct>50?'#f59e0b':'#6366f1',borderRadius:4,transition:'width .7s ease'}}/>
+                      </div>
+                      <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                        <span style={{fontSize:10,fontWeight:800,color:'#64748b'}}>{mt.length} total</span>
+                        <span style={{fontSize:10,fontWeight:800,color:'#34d399'}}>{done} done</span>
+                        {inProg>0&&<span style={{fontSize:10,fontWeight:800,color:'#f59e0b'}}>{inProg} active</span>}
+                        {blocked>0&&<span style={{fontSize:10,fontWeight:800,color:'#f87171'}}>{blocked} blocked</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Section>}
+          </>;
+        })()}</div>}
+
         {view==='settings'&&<div className="fadein" style={{display:'flex',flexDirection:'column',gap:16,maxWidth:520}}>
           <h2 style={{fontSize:15,fontWeight:900,letterSpacing:'-0.02em',display:'flex',alignItems:'center',gap:8}}><I n="settings" size={16} color="#64748b"/> Settings</h2>
           {[
@@ -1558,9 +1992,10 @@ KPI EXTRACTION RULES — FOLLOW EXACTLY:
       {/* ── BOTTOM NAV ── */}
       <nav style={{position:'fixed',bottom:16,left:'50%',transform:'translateX(-50%)',zIndex:50}}>
         <div style={{display:'flex',alignItems:'center',gap:4,padding:6,borderRadius:20,background:dm?'rgba(15,23,42,0.95)':'rgba(255,255,255,0.95)',border:dm?'1px solid rgba(255,255,255,0.08)':'1px solid #e2e8f0',boxShadow:'0 8px 32px rgba(0,0,0,0.4)',backdropFilter:'blur(16px)'}}>
-          {[{id:'dashboard',icon:'trending',label:'KPIs'},{id:'tasks',icon:'tasks',label:'Tasks'},{id:'team',icon:'team',label:'Team'},{id:'settings',icon:'settings',label:'Settings'}].map(item=>(
-            <button key={item.id} onClick={()=>setView(item.id)} style={{display:'flex',alignItems:'center',gap:view===item.id?8:0,padding:'10px 14px',borderRadius:14,border:'none',cursor:'pointer',background:view===item.id?'#4f46e5':'transparent',color:view===item.id?'#fff':'#64748b',fontWeight:900,fontSize:13,textTransform:'uppercase',letterSpacing:'0.05em',transition:'all .2s',boxShadow:view===item.id?'0 4px 12px rgba(79,70,229,0.4)':'none'}}>
-              <I n={item.icon} size={15} color={view===item.id?'#fff':'#64748b'}/>{view===item.id&&<span>{item.label}</span>}
+          {[{id:'dashboard',icon:'trending',label:'KPIs'},{id:'tasks',icon:'tasks',label:'Tasks'},{id:'team',icon:'team',label:'Team'},{id:'reports',icon:'fileText',label:'Reports'},{id:'settings',icon:'settings',label:'Settings'}].map(item=>(
+            <button key={item.id} onClick={()=>setView(item.id)} style={{display:'flex',alignItems:'center',flexDirection:'column',gap:view===item.id?3:2,padding:'8px 10px',borderRadius:14,border:'none',cursor:'pointer',background:view===item.id?'#4f46e5':'transparent',color:view===item.id?'#fff':'#64748b',fontWeight:900,fontSize:9,textTransform:'uppercase',letterSpacing:'0.04em',transition:'all .2s',boxShadow:view===item.id?'0 4px 12px rgba(79,70,229,0.4)':'none',minWidth:52,alignItems:'center',justifyContent:'center'}}>
+              <I n={item.icon} size={view===item.id?16:15} color={view===item.id?'#fff':'#64748b'}/>
+              <span style={{fontSize:9,lineHeight:1,marginTop:2,display:'block'}}>{item.label}</span>
             </button>
           ))}
         </div>
@@ -1695,38 +2130,107 @@ KPI EXTRACTION RULES — FOLLOW EXACTLY:
           <div style={{textAlign:'center'}}><div style={{fontWeight:900,fontSize:13,marginBottom:4}}>Analysing Data…</div><div style={{fontSize:13,color:'#64748b'}}>Extracting goals, tasks & KPIs with AI</div></div>
         </div>}
 
-        {importStep==='preview'&&importPrev&&<>
-          <div style={{borderRadius:10,border:'1px solid rgba(255,255,255,0.05)',maxHeight:220,overflowY:'auto',marginBottom:10,fontSize:13}}>
-            {importPrev.goals?.length>0&&<div style={{padding:12}}>
-              <div style={{fontSize:12,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',color:'#818cf8',marginBottom:8}}>{importPrev.goals.length} Goal{importPrev.goals.length!==1?'s':''} · {importPrev.goals.flatMap(g=>g.tasks||[]).length} Tasks</div>
-              {importPrev.goals.map((g,gi)=><div key={gi} style={{marginBottom:10}}>
-                <div style={{display:'flex',alignItems:'center',gap:6,padding:'6px 8px',borderRadius:8,background:'rgba(99,102,241,0.08)',marginBottom:6}}>
-                  <I n="target" size={9} color="#818cf8"/>
-                  <input style={{flex:1,background:'none',border:'none',outline:'none',fontWeight:900,color:'#818cf8',fontSize:13,minWidth:0}} value={g.name} onChange={e=>{const u=JSON.parse(JSON.stringify(importPrev));u.goals[gi].name=e.target.value;setImportPrev(u);}}/>
-                  <select value={g.quarter||1} onChange={e=>{const u=JSON.parse(JSON.stringify(importPrev));u.goals[gi].quarter=+e.target.value;setImportPrev(u);}} style={{background:'none',border:'none',outline:'none',fontSize:14,color:'#818cf8',fontWeight:900,cursor:'pointer',width:28}}>{[1,2,3,4].map(q=><option key={q} value={q}>Q{q}</option>)}</select>
-                  <button onClick={()=>{const u=JSON.parse(JSON.stringify(importPrev));u.goals.splice(gi,1);setImportPrev(u);}} style={{background:'none',border:'none',cursor:'pointer',color:'#f87171'}}><I n="x" size={9}/></button>
-                </div>
-                {(g.tasks||[]).map((t,ti)=><div key={ti} style={{display:'flex',alignItems:'center',gap:6,padding:'4px 8px 4px 20px'}}>
-                  <I n="chevRight" size={8} color="#475569"/>
-                  <input style={{flex:1,background:'none',border:'none',outline:'none',fontSize:13,fontWeight:500,color:'#94a3b8',minWidth:0}} value={t.name} onChange={e=>{const u=JSON.parse(JSON.stringify(importPrev));u.goals[gi].tasks[ti].name=e.target.value;setImportPrev(u);}}/>
-                  <span style={{fontSize:14,color:'#475569',flexShrink:0}}>{MONTHS[(t.month||1)-1]}</span>
-                  <button onClick={()=>{const u=JSON.parse(JSON.stringify(importPrev));u.goals[gi].tasks.splice(ti,1);setImportPrev(u);}} style={{background:'none',border:'none',cursor:'pointer',color:'#f87171',opacity:0.5}}><I n="x" size={8}/></button>
-                </div>)}
-              </div>)}
-            </div>}
-            {importPrev.kpis?.length>0&&<div style={{padding:12,borderTop:'1px solid rgba(255,255,255,0.05)'}}>
-              <div style={{fontSize:12,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',color:'#60a5fa',marginBottom:8}}>{importPrev.kpis.length} KPI{importPrev.kpis.length!==1?'s':''}</div>
-              {importPrev.kpis.map((k,ki)=><div key={ki} style={{display:'flex',alignItems:'center',gap:6,padding:'4px 8px'}}>
-                <I n="barChart" size={8} color="#60a5fa"/>
-                <input style={{flex:1,background:'none',border:'none',outline:'none',fontSize:13,fontWeight:500,color:'#94a3b8',minWidth:0}} value={k.name} onChange={e=>{const u=JSON.parse(JSON.stringify(importPrev));u.kpis[ki].name=e.target.value;setImportPrev(u);}}/>
-                <span style={{fontSize:14,color:'#475569',flexShrink:0}}>{k.unit||'%'} · {k.type==='lower'?'↓':'↑'}</span>
-                <button onClick={()=>{const u=JSON.parse(JSON.stringify(importPrev));u.kpis.splice(ki,1);setImportPrev(u);}} style={{background:'none',border:'none',cursor:'pointer',color:'#f87171',opacity:0.5}}><I n="x" size={8}/></button>
-              </div>)}
-            </div>}
-          </div>
-          <p style={{fontSize:12,color:'#64748b',textAlign:'center',marginBottom:10}}>✏️ Click any name to edit before importing</p>
-          <div style={{display:'flex',gap:8}}><BtnGhost onClick={()=>{setImportStep('input');setImportPrev(null);}}/><Btn onClick={execImport} color="emerald">Import All ✓</Btn></div>
-        </>}
+        {importStep==='preview'&&importPrev&&(()=>{
+          const existingGoalNames=new Set(goals.map(g=>g.name.trim().toLowerCase()));
+          const existingKpiByName=Object.fromEntries(kpis.map(k=>[k.name.trim().toLowerCase(),k]));
+          const existingKpiNames=new Set(Object.keys(existingKpiByName));
+          const newGoals=(importPrev.goals||[]).filter(g=>!existingGoalNames.has((g.name||'').trim().toLowerCase()));
+          const dupGoals=(importPrev.goals||[]).filter(g=>existingGoalNames.has((g.name||'').trim().toLowerCase()));
+          const newKpis=(importPrev.kpis||[]).filter(k=>!existingKpiNames.has((k.name||'').trim().toLowerCase()));
+          const mergeKpis=(importPrev.kpis||[]).filter(k=>existingKpiNames.has((k.name||'').trim().toLowerCase()));
+          const getMergeCount=k=>{
+            const ex=existingKpiByName[(k.name||'').trim().toLowerCase()];
+            if(!ex)return 0;
+            let n=0;
+            for(let m=1;m<=12;m++){const ms=String(m);
+              const hasA=(k.actuals||{})[ms]!=null||(k.actuals||{})[m]!=null;
+              const hasT=(k.targets||{})[ms]!=null||(k.targets||{})[m]!=null;
+              if((hasA&&(ex.actuals||{})[m]==null)||(hasT&&(ex.targets||{})[m]==null))n++;
+            }return n;
+          };
+          const getNewMonths=k=>{
+            const ex=existingKpiByName[(k.name||'').trim().toLowerCase()];
+            if(!ex)return[];
+            return Array.from({length:12},(_,i)=>i+1).filter(m=>{
+              const ms=String(m);
+              const hasA=(k.actuals||{})[ms]!=null||(k.actuals||{})[m]!=null;
+              return hasA&&(ex.actuals||{})[m]==null;
+            });
+          };
+          const totalNew=newGoals.length+newKpis.length;
+          const totalMerge=mergeKpis.reduce((s,k)=>s+getMergeCount(k),0);
+          return(<>
+            <div style={{display:'flex',gap:8,marginBottom:10,flexWrap:'wrap'}}>
+              {totalNew>0&&<div style={{display:'flex',alignItems:'center',gap:5,padding:'5px 10px',borderRadius:8,background:'rgba(16,185,129,0.1)',border:'1px solid rgba(16,185,129,0.2)'}}>
+                <div style={{width:7,height:7,borderRadius:'50%',background:'#10b981'}}/><span style={{fontSize:12,fontWeight:800,color:'#34d399'}}>{totalNew} new — will be added</span>
+              </div>}
+              {totalMerge>0&&<div style={{display:'flex',alignItems:'center',gap:5,padding:'5px 10px',borderRadius:8,background:'rgba(99,102,241,0.1)',border:'1px solid rgba(99,102,241,0.2)'}}>
+                <div style={{width:7,height:7,borderRadius:'50%',background:'#818cf8'}}/><span style={{fontSize:12,fontWeight:800,color:'#818cf8'}}>{totalMerge} month{totalMerge!==1?'s':''} will be merged</span>
+              </div>}
+              {dupGoals.length>0&&<div style={{display:'flex',alignItems:'center',gap:5,padding:'5px 10px',borderRadius:8,background:'rgba(100,116,139,0.1)',border:'1px solid rgba(100,116,139,0.2)'}}>
+                <div style={{width:7,height:7,borderRadius:'50%',background:'#64748b'}}/><span style={{fontSize:12,fontWeight:800,color:'#64748b'}}>{dupGoals.length} goal{dupGoals.length!==1?'s':''} skipped</span>
+              </div>}
+              {totalNew===0&&totalMerge===0&&<div style={{fontSize:12,color:'#f87171',fontWeight:700,padding:'5px 10px',borderRadius:8,background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)'}}>⚠ Nothing new to import — all data already exists</div>}
+            </div>
+            <div style={{borderRadius:10,border:'1px solid rgba(255,255,255,0.05)',maxHeight:260,overflowY:'auto',marginBottom:10,fontSize:13}}>
+              {importPrev.goals?.length>0&&<div style={{padding:12}}>
+                <div style={{fontSize:12,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',color:'#818cf8',marginBottom:8}}>{importPrev.goals.length} Goal{importPrev.goals.length!==1?'s':''} · {importPrev.goals.flatMap(g=>g.tasks||[]).length} Tasks</div>
+                {importPrev.goals.map((g,gi)=>{
+                  const isDup=existingGoalNames.has((g.name||'').trim().toLowerCase());
+                  return(<div key={gi} style={{marginBottom:10,opacity:isDup?0.4:1}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6,padding:'6px 8px',borderRadius:8,background:isDup?'rgba(100,116,139,0.06)':'rgba(99,102,241,0.08)',marginBottom:6,border:isDup?'1px solid rgba(100,116,139,0.15)':'1px solid transparent'}}>
+                      <I n="target" size={9} color={isDup?'#475569':'#818cf8'}/>
+                      <input style={{flex:1,background:'none',border:'none',outline:'none',fontWeight:900,color:isDup?'#475569':'#818cf8',fontSize:13,minWidth:0}} value={g.name} onChange={e=>{const u=JSON.parse(JSON.stringify(importPrev));u.goals[gi].name=e.target.value;setImportPrev(u);}} disabled={isDup}/>
+                      {isDup
+                        ?<span style={{fontSize:10,fontWeight:800,color:'#475569',background:'rgba(100,116,139,0.15)',padding:'1px 6px',borderRadius:4,flexShrink:0}}>SKIPPED</span>
+                        :<><span style={{fontSize:10,fontWeight:800,color:'#10b981',background:'rgba(16,185,129,0.1)',padding:'1px 6px',borderRadius:4,flexShrink:0}}>NEW</span>
+                          <select value={g.quarter||1} onChange={e=>{const u=JSON.parse(JSON.stringify(importPrev));u.goals[gi].quarter=+e.target.value;setImportPrev(u);}} style={{background:'none',border:'none',outline:'none',fontSize:14,color:'#818cf8',fontWeight:900,cursor:'pointer',width:28}}>{[1,2,3,4].map(q=><option key={q} value={q}>Q{q}</option>)}</select>
+                          <button onClick={()=>{const u=JSON.parse(JSON.stringify(importPrev));u.goals.splice(gi,1);setImportPrev(u);}} style={{background:'none',border:'none',cursor:'pointer',color:'#f87171'}}><I n="x" size={9}/></button></>}
+                    </div>
+                    {!isDup&&(g.tasks||[]).map((t,ti)=><div key={ti} style={{display:'flex',alignItems:'center',gap:6,padding:'4px 8px 4px 20px'}}>
+                      <I n="chevRight" size={8} color="#475569"/>
+                      <input style={{flex:1,background:'none',border:'none',outline:'none',fontSize:13,fontWeight:500,color:'#94a3b8',minWidth:0}} value={t.name} onChange={e=>{const u=JSON.parse(JSON.stringify(importPrev));u.goals[gi].tasks[ti].name=e.target.value;setImportPrev(u);}}/>
+                      <span style={{fontSize:11,color:'#475569',flexShrink:0}}>{MONTHS[(t.month||1)-1]}</span>
+                      <button onClick={()=>{const u=JSON.parse(JSON.stringify(importPrev));u.goals[gi].tasks.splice(ti,1);setImportPrev(u);}} style={{background:'none',border:'none',cursor:'pointer',color:'#f87171',opacity:0.5}}><I n="x" size={8}/></button>
+                    </div>)}
+                  </div>);
+                })}
+              </div>}
+              {importPrev.kpis?.length>0&&<div style={{padding:12,borderTop:'1px solid rgba(255,255,255,0.05)'}}>
+                <div style={{fontSize:12,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',color:'#60a5fa',marginBottom:8}}>{importPrev.kpis.length} KPI{importPrev.kpis.length!==1?'s':''}</div>
+                {importPrev.kpis.map((k,ki)=>{
+                  const isMerge=existingKpiNames.has((k.name||'').trim().toLowerCase());
+                  const mc=isMerge?getMergeCount(k):0;
+                  const noNew=isMerge&&mc===0;
+                  const newMonths=isMerge?getNewMonths(k):[];
+                  return(<div key={ki} style={{padding:'5px 8px',borderRadius:7,marginBottom:4,background:noNew?'rgba(100,116,139,0.04)':isMerge?'rgba(99,102,241,0.05)':'transparent',opacity:noNew?0.4:1}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}>
+                      <I n="barChart" size={8} color={noNew?'#475569':isMerge?'#818cf8':'#60a5fa'}/>
+                      <input style={{flex:1,background:'none',border:'none',outline:'none',fontSize:13,fontWeight:500,color:noNew?'#475569':'#94a3b8',minWidth:0}} value={k.name} onChange={e=>{const u=JSON.parse(JSON.stringify(importPrev));u.kpis[ki].name=e.target.value;setImportPrev(u);}} disabled={isMerge}/>
+                      <span style={{fontSize:11,color:'#475569',flexShrink:0}}>{k.unit||'%'} · {k.type==='lower'?'↓':'↑'}</span>
+                      {noNew
+                        ?<span style={{fontSize:10,fontWeight:800,color:'#475569',background:'rgba(100,116,139,0.15)',padding:'1px 6px',borderRadius:4,flexShrink:0}}>UP TO DATE</span>
+                        :isMerge
+                          ?<span style={{fontSize:10,fontWeight:800,color:'#818cf8',background:'rgba(99,102,241,0.15)',padding:'1px 6px',borderRadius:4,flexShrink:0}}>+{mc} month{mc!==1?'s':''}</span>
+                          :<><span style={{fontSize:10,fontWeight:800,color:'#10b981',background:'rgba(16,185,129,0.1)',padding:'1px 6px',borderRadius:4,flexShrink:0}}>NEW</span>
+                            <button onClick={()=>{const u=JSON.parse(JSON.stringify(importPrev));u.kpis.splice(ki,1);setImportPrev(u);}} style={{background:'none',border:'none',cursor:'pointer',color:'#f87171',opacity:0.5}}><I n="x" size={8}/></button></>}
+                    </div>
+                    {newMonths.length>0&&<div style={{display:'flex',gap:3,flexWrap:'wrap',marginTop:5,paddingLeft:16}}>
+                      {newMonths.map(m=><span key={m} style={{fontSize:9,fontWeight:800,padding:'1px 5px',borderRadius:3,background:'rgba(99,102,241,0.15)',color:'#a5b4fc'}}>{MONTHS[m-1]}</span>)}
+                    </div>}
+                  </div>);
+                })}
+              </div>}
+            </div>
+            <p style={{fontSize:12,color:'#64748b',textAlign:'center',marginBottom:10}}>Existing months are never overwritten · only empty cells are filled</p>
+            <div style={{display:'flex',gap:8}}>
+              <BtnGhost onClick={()=>{setImportStep('input');setImportPrev(null);}}/>
+              <Btn onClick={execImport} disabled={totalNew===0&&totalMerge===0} color="emerald">
+                {totalNew>0&&totalMerge>0?`Add ${totalNew} + Merge ${totalMerge} month${totalMerge!==1?'s':''}`:totalNew>0?`Import ${totalNew} New Item${totalNew!==1?'s':''}`:totalMerge>0?`Merge ${totalMerge} Month${totalMerge!==1?'s':''}`:'Nothing to Import'} ✓
+              </Btn>
+            </div>
+          </>);
+        })()}
 
         {importStep==='importing'&&<div style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'40px 0',gap:16}}>
           <div style={{position:'relative',width:56,height:56}}><div style={{position:'absolute',inset:0,borderRadius:'50%',border:'4px solid rgba(16,185,129,0.2)'}}/><div style={{position:'absolute',inset:0,borderRadius:'50%',border:'4px solid transparent',borderTopColor:'#10b981'}} className="spin"/></div>
